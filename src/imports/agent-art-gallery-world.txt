@@ -1,0 +1,247 @@
+Design a **desktop-first spatial interface** for a web app called **Agent Art Gallery**, using an **AI Town-style visible world layout** (persistent shared space with visible agents, buildings/zones, and click-to-enter areas).
+
+## Critical requirement (non-negotiable)
+
+This must be a **coherent, visible, navigable pixel-art space** — not a dashboard with a random background image.
+
+The primary experience should be:
+
+* a **tile-based world / floorplan**
+* **agents represented as pixel avatars in-space**
+* **rooms/buildings/zones** for Gallery, Commissions, Studio, Exchange
+* **clickable hotspots** and objects for navigation
+* overlay panels only as secondary UI
+
+### Hard constraints (must follow)
+
+* **Do NOT use stock photo backgrounds**
+* **Do NOT use random isometric room images pasted as a hero**
+* **Do NOT make card grids the main layout**
+* **Do NOT use large metric-card rows on the home/world screen**
+* **Do NOT make the world feel decorative**
+* **Do NOT use photorealistic imagery in the world scene**
+
+---
+
+## Reference interaction style
+
+Use the interaction pattern of a **shared virtual town/workspace** (AI Town-like):
+
+* agents are visible in a persistent map
+* places have meaning (buildings/rooms)
+* users click locations or avatars to inspect/interact
+* activity is communicated through in-world markers and subtle overlays
+
+This is a **world-first interface**.
+
+---
+
+## Product concept
+
+Agent Art Gallery is a multi-agent creative platform where AI agents and humans:
+
+1. Post art/design commissions
+2. Collaborate in studio spaces
+3. Publish works to a gallery
+4. Buy/sell licenses and art with credits
+
+The UI should make these activities visible as **spatial places**.
+
+---
+
+## Visual style
+
+Create a **pixel-art environment** with a clean, readable UI overlay system.
+
+### World style
+
+* Pixel-art tiles and sprites
+* Consistent scale and perspective (choose ONE: top-down OR isometric and stick to it)
+* Strong environmental readability
+* Cozy / moody creative vibe (museum + studio campus)
+* Visible paths, floors, walls, counters, display frames, bulletin boards
+
+### Overlay style
+
+* Pixel-styled windows/panels with readable text
+* Clean typography for body text (not pixel font for long content)
+* Pixel font only for titles/signage/labels
+
+---
+
+## World layout requirement (most important)
+
+Design a **single coherent main world scene** (not scattered panels) that includes distinct zones:
+
+### Required zones in the visible world
+
+* **Gallery Hall** (framed works on walls / display stands)
+* **Commission Board** (bulletin board or terminal area with pinned requests)
+* **Studio Area** (workstations/easels/desks where agent collaboration happens)
+* **Exchange Counter** (wallet terminal / trading desk / trend board)
+* **Agent Lounge / Directory Kiosk** (where agents gather / can be inspected)
+
+### Spatial rules
+
+* There must be a **clear ground plane / walkable area**
+* Zones should be connected by **paths/corridors**
+* Each zone should have a **visual landmark** (board, counter, neon sign, frame wall, etc.)
+* The world should feel like a **small map/campus/room system**, not a blank stage
+
+---
+
+## Agents (must be embodied)
+
+Agents must appear as **pixel avatars/sprites** placed in the world.
+
+### Show at least these agent states visually
+
+* Idle
+* Creating / working
+* Critiquing / reviewing
+* Trading / browsing
+
+### Agent UI
+
+* Avatar sprite
+* Nameplate label (e.g., PixelArtist-07, DesignCritic-AI)
+* Status dot/icon
+* Hover highlight
+* Click opens profile popover or side panel
+
+Agents should be positioned meaningfully:
+
+* artists near studio
+* critics near critique/review wall
+* collectors/buyers near exchange/gallery
+
+---
+
+## In-world interaction objects (diegetic UI)
+
+Design clickable world objects such as:
+
+* framed artwork (open gallery item details)
+* commission board tickets/pins (open commission detail)
+* studio console/worktable (open studio panel)
+* exchange terminal (open wallet/transactions)
+* agent kiosk / leaderboard sign (open directory)
+* doors/portals/signposts (navigate zones)
+
+These objects should be the main navigation mechanism on the world screen.
+
+---
+
+## Activity indicators (in-world, not just panels)
+
+Show lightweight activity signals inside the space:
+
+* “new critique” badge near studio
+* “open commissions” count near board
+* “license sold” ticker near exchange
+* “active studio” glow/marker
+* “featured work” spotlight in gallery
+
+Use subtle pixel labels, signs, or floating markers anchored to locations.
+
+---
+
+## Deliverables to generate in Figma
+
+### A) Main World Screen (high fidelity, required)
+
+Create a **single large spatial scene** showing the Agent Art Gallery world.
+Must include:
+
+* coherent tile-based layout
+* visible zones (gallery, commissions, studio, exchange, lounge)
+* multiple agent avatars in the world
+* hotspot labels/signs
+* a small legend or hint bar (e.g., hover/click instructions)
+* minimal top nav (optional), but world is primary
+
+### B) Zone Detail Screens (still spatial, not dashboard)
+
+Create 4 zone-focused views where the camera/scene focuses on a specific area:
+
+1. Commission Board Area
+2. Studio Area
+3. Gallery Area
+4. Exchange Area
+
+Each should still feel like a place in the world, with overlay panels for details.
+
+### C) Overlay UI components (secondary)
+
+Create reusable overlay components:
+
+* Agent profile popover
+* Commission detail drawer
+* Studio activity side panel
+* Artwork detail modal
+* Wallet/transaction drawer
+* Tooltip / hover card
+* Notification toast
+
+### D) Component system page (implementation-friendly)
+
+Create reusable components and variants:
+
+* `AgentAvatarSprite`
+* `AgentNameplate`
+* `WorldHotspotSign`
+* `ZoneMarkerBadge`
+* `PixelWindowPanel`
+* `CommissionBoardPin`
+* `GalleryFrame`
+* `WalletTerminalPanel`
+* `ActivityTooltip`
+* `StatusDot`
+
+Use consistent naming for React handoff.
+
+---
+
+## Composition guidance (to prevent chaos)
+
+### Home/world screen composition target
+
+* **70–80%** visible world scene
+* **20–30%** overlay UI / controls
+* At most **one persistent info panel** on the world screen
+* Other details open on interaction (drawer/modal/popover)
+
+### Make it clean and readable
+
+* Use a consistent tile grid (e.g., 16px or 24px logic)
+* Consistent avatar scale
+* Limit visual noise and floating labels
+* Anchor labels to actual objects/locations
+* Avoid empty black space and random decorative clutter
+
+---
+
+## Prototype interactions (important)
+
+Create a click-through prototype showing:
+
+* Click Gallery zone → open Gallery area view
+* Click Commission board pin → commission detail drawer
+* Click Studio workstation → studio panel
+* Click agent avatar → agent profile popover
+* Click Exchange terminal → wallet/transactions panel
+
+The prototype should prove the app is a **spatial interactive world**, not a dashboard.
+
+---
+
+## Content examples (use realistic product labels)
+
+* “Studio #12 active”
+* “New critique submitted”
+* “Open commissions: 89”
+* “License sold: Neon Dreams (650 cr)”
+* “PixelArtist-07 (working)”
+* “DesignCritic-AI (reviewing)”
+
+Keep the product concept visible, but prioritize the spatial UX.
