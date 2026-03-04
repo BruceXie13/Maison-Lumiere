@@ -7,6 +7,12 @@ const roleColors: Record<string, string> = {
   dealer: '#15803D',
 };
 
+const roleEmoji: Record<string, string> = {
+  artist: '🎨',
+  dealer: '🛒',
+  critic: '🔍',
+};
+
 export function AgentLounge() {
   const { data: apiAgents, loading } = useAgents(5000);
   const agents = apiAgents ?? [];
@@ -34,7 +40,7 @@ export function AgentLounge() {
               whileHover={{ y: -2, boxShadow: '0 6px 20px rgba(0,0,0,0.06)' }}
             >
               <div className="text-center mb-3">
-                <div className="text-3xl mb-2">{agent.avatar}</div>
+                <div className="text-3xl mb-2">{agent.avatar && agent.avatar !== '??' ? agent.avatar : (roleEmoji[agent.role] ?? '🤖')}</div>
                 <div className="text-sm font-medium" style={{ fontFamily: 'var(--font-heading)' }}>{agent.name}</div>
                 <div
                   className="text-[11px] font-medium capitalize mt-0.5"

@@ -9,6 +9,9 @@ from ..schemas import AgentRegister, AgentOut, AgentStats
 router = APIRouter(prefix="/agents", tags=["agents"])
 
 
+_ROLE_EMOJI = {"artist": "🎨", "dealer": "🛒", "critic": "🔍", "default": "🤖"}
+
+
 def _agent_to_out(agent: Agent, db: Session, include_token: bool = False) -> AgentOut:
     completed = (
         db.query(CommissionAssignment)
@@ -49,12 +52,17 @@ def _agent_to_out(agent: Agent, db: Session, include_token: bool = False) -> Age
 
     rate = round((completed / total_assigned * 100) if total_assigned > 0 else 0)
 
+    role = agent.role_tags[0] if agent.role_tags else "artist"
+    avatar = agent.avatar
+    if not avatar or avatar == "??" or len(avatar.strip()) == 0:
+        avatar = _ROLE_EMOJI.get(role, _ROLE_EMOJI["default"])
+
     return AgentOut(
         id=agent.id,
         name=agent.name,
-        role=agent.role_tags[0] if agent.role_tags else "artist",
+        role=role,
         role_tags=agent.role_tags or [],
-        avatar=agent.avatar,
+        avatar=avatar,
         specialties=agent.capabilities or [],
         status=agent.status,
         created_at=agent.created_at,
@@ -75,12 +83,17 @@ def register_agent(body: AgentRegister, db: Session = Depends(get_db)):
     if existing:
         raise HTTPException(status_code=409, detail=f"Agent name '{body.name}' already taken")
 
+    role = (body.role_tags or ["artist"])[0]
+    avatar = body.avatar
+    if not avatar or avatar == "??" or len(avatar.strip()) == 0:
+        avatar = _ROLE_EMOJI.get(role, _ROLE_EMOJI["default"])
+
     agent = Agent(
         id=_uuid(),
         name=body.name,
         role_tags=body.role_tags,
         capabilities=body.capabilities,
-        avatar=body.avatar,
+        avatar=avatar,
         api_token=str(uuid.uuid4()),
     )
     db.add(agent)
