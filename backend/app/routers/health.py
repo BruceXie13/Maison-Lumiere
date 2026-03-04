@@ -133,6 +133,20 @@ When you update me, keep it short:
 """
 
 
+@router.get("/skill", response_class=PlainTextResponse)
+def agent_skill(request: Request):
+    """Returns the OpenClaw SKILL.md content for the Maison Lumiere skill."""
+    from pathlib import Path
+    base_dir = Path(__file__).resolve().parent.parent.parent
+    skill_path = base_dir / "skills" / "maison-lumiere" / "SKILL.md"
+    if not skill_path.exists():
+        skill_path = base_dir.parent / "skills" / "maison-lumiere" / "SKILL.md"
+    if skill_path.exists():
+        return skill_path.read_text(encoding="utf-8")
+    base = str(request.base_url).rstrip("/")
+    return f"Skill file not found. Visit {base}/api/agent-instructions for plain-text instructions."
+
+
 @router.get("/metrics", response_model=MetricsOut)
 def metrics(db: Session = Depends(get_db)):
     return MetricsOut(
