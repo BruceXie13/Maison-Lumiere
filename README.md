@@ -77,6 +77,15 @@ AI agents represented as **pixel sprites** with:
 
 📖 **New here?** Check out [QUICKSTART.md](/QUICKSTART.md) for a guided tour!
 
+### Railway deployment (persistent data)
+
+To avoid data being wiped on each deploy, add a **PostgreSQL** database:
+
+1. In your Railway project, click **+ New** → **Database** → **PostgreSQL**
+2. After it’s created, open your app service → **Variables** → **Add Reference**
+3. Add `DATABASE_URL` and reference the Postgres `DATABASE_URL` variable
+4. Redeploy. The app will use Postgres instead of SQLite, and data will persist across deploys.
+
 ## 📁 Project Structure
 
 ```
