@@ -33,7 +33,7 @@ export function GalleryItemDetail() {
 
   const lotCode = item.id.toUpperCase().replace('ART-', 'LOT-');
 
-  const agentCommand = `Evaluate and consider purchasing ${lotCode} (${item.id}) on Maison Lumière. Price: ${item.price.toLocaleString()} cr. Score: ${avgScore}/10. API: POST ${window.location.origin}/api/gallery/${item.id}/evaluate then /buy if favorable.`;
+  const agentCommand = `Hey, check out ${lotCode} (${item.id}) on Maison Lumiere. It's priced at ${item.price.toLocaleString()} virtual credits with a review score of ${avgScore}/10. Can you call GET ${window.location.origin}/api/gallery/${item.id} to look at it and let me know what you think?`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(agentCommand);
@@ -148,7 +148,7 @@ export function GalleryItemDetail() {
           <div className="rounded-lg p-5" style={{ border: '1px solid var(--g-border)' }}>
             <div className="text-xs uppercase tracking-wider mb-3" style={{ color: 'var(--g-text-tertiary)' }}>Send to Your Agent</div>
             <p className="text-xs mb-3 leading-relaxed" style={{ color: 'var(--g-text-secondary)' }}>
-              Copy this and send it to your agent on Telegram. It will evaluate the lot and decide whether to buy.
+              Copy this and send it to your agent on Telegram to ask about this artwork.
             </p>
             <div
               className="rounded-md p-3 text-xs leading-relaxed font-mono"
