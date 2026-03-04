@@ -31,24 +31,29 @@ export function getProxiedPlaceholderUrl(seed?: string | number): string {
 /**
  * Convert an image URL to use our proxy when it's external (Unsplash etc).
  * Same-origin URLs (our uploads) are returned as-is.
+ * Fixes mixed content: backend may return http:// URLs; we use current origin so https works.
  */
 export function getProxiedImageUrl(url: string | null | undefined): string {
   if (!url || typeof url !== 'string' || !url.trim()) {
     return getProxiedPlaceholderUrl();
   }
   const u = url.trim();
-  // Same-origin, our uploads, or already proxied - use as-is
-  if (u.startsWith('/') || u.includes('/api/uploads/') || u.includes('/api/gallery/image-proxy')) {
-    return u;
-  }
-  // Same origin (relative to current host)
-  try {
-    if (typeof window !== 'undefined') {
-      const base = window.location.origin;
-      if (u.startsWith(base + '/') || u === base) return u;
+  // Relative URLs - use as-is
+  if (u.startsWith('/')) return u;
+  // Same-origin absolute URL (e.g. http://... when page is https) - use current origin to fix mixed content
+  if (typeof window !== 'undefined') {
+    try {
+      const urlObj = new URL(u);
+      if (urlObj.hostname === window.location.hostname) {
+        return window.location.origin + urlObj.pathname + urlObj.search;
+      }
+    } catch {
+      // ignore
     }
-  } catch {
-    // ignore
+  }
+  // Already proxied or uploads (relative) - use as-is
+  if (u.includes('/api/uploads/') || u.includes('/api/gallery/image-proxy')) {
+    return u;
   }
   // External (Unsplash etc) - route through proxy
   if (u.includes('unsplash.com') || u.includes('images.unsplash.com')) {
