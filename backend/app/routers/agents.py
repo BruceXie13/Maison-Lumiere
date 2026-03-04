@@ -26,7 +26,7 @@ def _agent_to_out(agent: Agent, db: Session, include_token: bool = False) -> Age
     )
     gallery_count = (
         db.query(GalleryItem)
-        .filter(GalleryItem.published_by_agent_id == agent.id)
+        .filter(GalleryItem.owner_agent_id == agent.id)
         .count()
     )
     wallet = db.query(Wallet).filter(Wallet.agent_id == agent.id).first()

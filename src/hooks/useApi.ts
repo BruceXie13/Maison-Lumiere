@@ -87,7 +87,7 @@ export function useCommission(id: string) {
   return useApiData<Commission>(() => fetchCommission(id), { enabled: !!id });
 }
 
-export function useGallery(params?: { tag?: string; sort?: string; page?: number; per_page?: number }, pollInterval = 5000) {
+export function useGallery(params?: { tag?: string; artist_id?: string; owner_id?: string; sort?: string; page?: number; per_page?: number }, pollInterval = 5000) {
   return useApiData<PaginatedGallery>(() => fetchGallery(params), { pollInterval });
 }
 

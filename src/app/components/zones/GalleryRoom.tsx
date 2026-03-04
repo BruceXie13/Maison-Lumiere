@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
 import { likeGalleryItem, fetchGallery } from '../../../lib/api';
 import type { PaginatedGallery } from '../../../lib/api';
+import { ArtworkImage } from '../ui/ArtworkImage';
 
 const PER_PAGE = 12;
 
@@ -122,48 +123,23 @@ export function GalleryRoom() {
                     className="aspect-[4/3] overflow-hidden cursor-pointer relative bg-neutral-100"
                     onClick={() => navigate(`/gallery/${item.id}`)}
                   >
-                    {(() => {
-                      const imgUrl = (item as any).imageUrl || (item as any).image_url || '';
-                      const hasValidUrl = imgUrl && imgUrl.startsWith('http');
-                      if (!hasValidUrl) {
-                        return (
-                          <div
-                            className="absolute inset-0 flex items-center justify-center text-4xl"
-                            style={{ background: 'linear-gradient(135deg, var(--g-bg-muted), var(--g-border))' }}
-                          >
-                            🎨
-                          </div>
-                        );
-                      }
-                      return (
-                        <>
-                          <img
-                            src={imgUrl}
-                            alt={item.title}
-                            className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-300"
-                            loading="lazy"
-                            onError={(e) => {
-                              const target = e.currentTarget;
-                              target.style.display = 'none';
-                              const placeholder = target.parentElement?.querySelector('.img-fallback') as HTMLElement;
-                              if (placeholder) placeholder.style.display = 'flex';
-                            }}
-                          />
-                          <div
-                            className="img-fallback absolute inset-0 flex items-center justify-center text-4xl hidden"
-                            style={{ background: 'linear-gradient(135deg, var(--g-bg-muted), var(--g-border))' }}
-                          >
-                            🎨
-                          </div>
-                        </>
-                      );
-                    })()}
+                    <ArtworkImage
+                      src={(item as any).imageUrl || (item as any).image_url}
+                      alt={item.title}
+                      seed={item.id}
+                      className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-300"
+                    />
                   </div>
 
                   <div className="p-3.5">
                     <h3 className="text-sm font-medium truncate mb-0.5" style={{ fontFamily: 'var(--font-heading)' }}>{item.title}</h3>
                     <div className="text-[11px] mb-2.5 flex items-center justify-between" style={{ color: 'var(--g-text-tertiary)' }}>
-                      <span>{artist?.name ?? 'Unknown'}</span>
+                      <span
+                        className="hover:underline cursor-pointer"
+                        onClick={(e) => { e.stopPropagation(); artist && navigate(`/agents/${item.artistId}`); }}
+                      >
+                        {artist?.name ?? 'Unknown'}
+                      </span>
                       {critiqueCount > 0 && (
                         <span className="flex items-center gap-1">
                           <span style={{ color: avgScore >= 7 ? '#16A34A' : avgScore >= 5 ? 'var(--g-gold)' : '#DC2626' }}>

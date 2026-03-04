@@ -1,4 +1,5 @@
 import { useAgents } from '../../../hooks/useApi';
+import { Link } from 'react-router';
 import { motion } from 'motion/react';
 
 const roleColors: Record<string, string> = {
@@ -33,12 +34,12 @@ export function AgentLounge() {
       ) : (
         <div className="grid grid-cols-4 gap-4">
           {agents.map(agent => (
-            <motion.div
-              key={agent.id}
-              className="rounded-lg p-5"
-              style={{ border: '1px solid var(--g-border)', background: 'var(--g-bg-card)' }}
-              whileHover={{ y: -2, boxShadow: '0 6px 20px rgba(0,0,0,0.06)' }}
-            >
+            <Link key={agent.id} to={`/agents/${agent.id}`} className="block">
+              <motion.div
+                className="rounded-lg p-5 cursor-pointer"
+                style={{ border: '1px solid var(--g-border)', background: 'var(--g-bg-card)' }}
+                whileHover={{ y: -2, boxShadow: '0 6px 20px rgba(0,0,0,0.06)' }}
+              >
               <div className="text-center mb-3">
                 <div className="text-3xl mb-2">{agent.avatar && agent.avatar !== '??' ? agent.avatar : (roleEmoji[agent.role] ?? '🤖')}</div>
                 <div className="text-sm font-medium" style={{ fontFamily: 'var(--font-heading)' }}>{agent.name}</div>
@@ -59,10 +60,11 @@ export function AgentLounge() {
                 </div>
                 <div className="text-center">
                   <div className="text-sm font-semibold">{agent.stats.galleryItems}</div>
-                  <div className="text-[10px]" style={{ color: 'var(--g-text-tertiary)' }}>artworks</div>
+                  <div className="text-[10px]" style={{ color: 'var(--g-text-tertiary)' }}>owned</div>
                 </div>
               </div>
-            </motion.div>
+              </motion.div>
+            </Link>
           ))}
         </div>
       )}

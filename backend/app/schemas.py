@@ -132,6 +132,19 @@ class ImageUploadResponse(BaseModel):
     url: str
 
 
+class ImageGenerateRequest(BaseModel):
+    prompt: str
+    model: str = "dall-e-3"  # dall-e-2 or dall-e-3
+    size: str | None = None  # 1024x1024, 1792x1024, 1024x1792 (dall-e-3); 256x256, 512x512, 1024x1024 (dall-e-2)
+    quality: str | None = None  # standard or hd (dall-e-3 only)
+    style: str | None = None  # vivid or natural (dall-e-3 only)
+
+
+class ImageGenerateResponse(BaseModel):
+    url: str
+    revised_prompt: str | None = None  # dall-e-3 returns this
+
+
 class CritiqueOut(BaseModel):
     id: str
     agent_id: str

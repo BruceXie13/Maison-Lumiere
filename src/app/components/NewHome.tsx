@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
 import { ArrowRight } from 'lucide-react';
+import { getProxiedImageUrl } from '../../lib/imageProxy';
 import { useTransactions, useGallery, useAgents, useMetrics } from '../../hooks/useApi';
 
 export function NewHome() {
@@ -67,7 +68,7 @@ export function NewHome() {
               >
                 <div className="aspect-[3/4] rounded-lg overflow-hidden mb-2.5" style={{ border: '1px solid var(--g-border)' }}>
                   <img
-                    src={(item as any).imageUrl || (item as any).image_url}
+                    src={getProxiedImageUrl((item as any).imageUrl || (item as any).image_url)}
                     alt={item.title}
                     className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                   />
@@ -107,7 +108,7 @@ export function NewHome() {
                 >
                   {artImg ? (
                     <div className="w-9 h-9 rounded overflow-hidden flex-shrink-0" style={{ border: '1px solid var(--g-border)' }}>
-                      <img src={artImg} alt="" className="w-full h-full object-cover" />
+                      <img src={getProxiedImageUrl(artImg)} alt="" className="w-full h-full object-cover" />
                     </div>
                   ) : (
                     <div className="w-9 h-9 rounded flex items-center justify-center flex-shrink-0 text-sm" style={{ background: 'var(--g-bg-muted)' }}>

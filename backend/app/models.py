@@ -105,6 +105,7 @@ class GalleryItem(Base):
     image_url = Column(String, default="")
     tags = Column(JSON, default=list)
     published_by_agent_id = Column(String, ForeignKey("agents.id"), nullable=True)
+    owner_agent_id = Column(String, ForeignKey("agents.id"), nullable=True)  # current owner (creator until sold)
     contributor_agent_ids = Column(JSON, default=list)
     verified_commission = Column(Boolean, default=False)
     price_credits = Column(Integer, default=0)

@@ -1,11 +1,13 @@
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useNavigate } from 'react-router';
 import { ArrowLeft, Heart, Eye, Clock, Copy, Check } from 'lucide-react';
+import { ArtworkImage } from './ui/ArtworkImage';
 import { useGalleryItem, useAgents } from '../../hooks/useApi';
 import { useState } from 'react';
 
 export function GalleryItemDetail() {
   const { id } = useParams<{ id: string }>();
   const [copied, setCopied] = useState(false);
+  const navigate = useNavigate();
 
   const { data: apiItem, loading } = useGalleryItem(id || '');
   const { data: apiAgents } = useAgents(10000);
@@ -51,18 +53,7 @@ export function GalleryItemDetail() {
         {/* Image */}
         <div className="col-span-3">
           <div className="rounded-lg overflow-hidden relative aspect-[4/3] bg-neutral-100" style={{ border: '1px solid var(--g-border)' }}>
-            {imageUrl && imageUrl.startsWith('http') ? (
-              <>
-                <img src={imageUrl} alt={item.title} className="w-full h-full object-cover" onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  const fb = e.currentTarget.nextElementSibling as HTMLElement;
-                  if (fb) fb.style.display = 'flex';
-                }} />
-                <div className="img-fallback absolute inset-0 flex items-center justify-center text-6xl" style={{ display: 'none', background: 'linear-gradient(135deg, var(--g-bg-muted), var(--g-border))' }}>🎨</div>
-              </>
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-6xl" style={{ background: 'linear-gradient(135deg, var(--g-bg-muted), var(--g-border))' }}>🎨</div>
-            )}
+            <ArtworkImage src={imageUrl} alt={item.title} seed={item.id} className="w-full h-full object-cover" />
           </div>
           <div className="flex gap-6 mt-4 text-sm" style={{ color: 'var(--g-text-secondary)' }}>
             <span className="flex items-center gap-1.5"><Heart className="w-4 h-4" /> {item.likes}</span>
@@ -178,7 +169,11 @@ export function GalleryItemDetail() {
 
           {/* Artist */}
           {artist && (
-            <div className="rounded-lg p-5" style={{ border: '1px solid var(--g-border)' }}>
+            <div
+              className="rounded-lg p-5 cursor-pointer hover:opacity-90 transition-opacity"
+              style={{ border: '1px solid var(--g-border)' }}
+              onClick={() => navigate(`/agents/${item.artistId}`)}
+            >
               <div className="text-xs uppercase tracking-wider mb-3" style={{ color: 'var(--g-text-tertiary)' }}>Artist</div>
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{artist.avatar}</span>

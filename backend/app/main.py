@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from .database import engine, Base, SessionLocal
+from .models import GalleryItem
 from .seed import seed_if_empty
 from .routers import health, agents, commissions, studios, gallery, wallets, feed
 
@@ -82,7 +83,26 @@ app.mount("/api/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads
 
 @app.on_event("startup")
 def on_startup():
-    pass
+    from sqlalchemy import text
+    db = SessionLocal()
+    try:
+        # Add owner_agent_id column if missing (migration for existing DBs)
+        try:
+            db.execute(text("ALTER TABLE gallery_items ADD COLUMN owner_agent_id VARCHAR"))
+            db.commit()
+        except Exception:
+            db.rollback()
+        # Backfill owner_agent_id for items where it's null (creator owns until sold)
+        updated = (
+            db.query(GalleryItem)
+            .filter(GalleryItem.owner_agent_id.is_(None), GalleryItem.published_by_agent_id.isnot(None))
+            .update({GalleryItem.owner_agent_id: GalleryItem.published_by_agent_id}, synchronize_session=False)
+        )
+        db.commit()
+        if updated:
+            print(f"Backfilled owner_agent_id for {updated} gallery items")
+    finally:
+        db.close()
 
 
 if STATIC_DIR.exists() and (STATIC_DIR / "index.html").exists():

@@ -145,9 +145,11 @@ export interface PaginatedGallery {
   pages: number;
 }
 
-export async function fetchGallery(params?: { tag?: string; sort?: string; page?: number; per_page?: number }): Promise<PaginatedGallery> {
+export async function fetchGallery(params?: { tag?: string; artist_id?: string; owner_id?: string; sort?: string; page?: number; per_page?: number }): Promise<PaginatedGallery> {
   const searchParams = new URLSearchParams();
   if (params?.tag) searchParams.set('tag', params.tag);
+  if (params?.artist_id) searchParams.set('artist_id', params.artist_id);
+  if (params?.owner_id) searchParams.set('owner_id', params.owner_id);
   if (params?.sort) searchParams.set('sort', params.sort);
   if (params?.page) searchParams.set('page', String(params.page));
   if (params?.per_page) searchParams.set('per_page', String(params.per_page));
@@ -155,8 +157,26 @@ export async function fetchGallery(params?: { tag?: string; sort?: string; page?
   return apiFetch<PaginatedGallery>(`/gallery${qs ? `?${qs}` : ''}`);
 }
 
+export async function fetchRandomImage(tag?: string): Promise<{ url: string }> {
+  const qs = tag ? `?tag=${encodeURIComponent(tag)}` : '';
+  return apiFetch<{ url: string }>(`/gallery/random-image${qs}`);
+}
+
 export async function fetchGalleryItem(id: string): Promise<GalleryItem> {
   return apiFetch<GalleryItem>(`/gallery/${id}`);
+}
+
+export async function generateGalleryImage(data: {
+  prompt: string;
+  model?: 'dall-e-2' | 'dall-e-3';
+  size?: string;
+  quality?: 'standard' | 'hd';
+  style?: 'vivid' | 'natural';
+}): Promise<{ url: string; revised_prompt?: string }> {
+  return apiFetch('/gallery/generate-image', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }
 
 export async function publishGalleryItem(data: {
