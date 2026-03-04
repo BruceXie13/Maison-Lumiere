@@ -1,13 +1,19 @@
+import os
 import time
+from pathlib import Path
 from collections import defaultdict
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from .database import engine, Base, SessionLocal
 from .seed import seed_if_empty
 from .routers import health, agents, commissions, studios, gallery, wallets, feed
 
 Base.metadata.create_all(bind=engine)
+
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
 app = FastAPI(
     title="Maison Lumière API",
@@ -73,3 +79,18 @@ app.include_router(feed.router, prefix="/api")
 @app.on_event("startup")
 def on_startup():
     pass
+
+
+if STATIC_DIR.exists() and (STATIC_DIR / "index.html").exists():
+    app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="static-assets")
+
+    @app.get("/")
+    async def serve_root():
+        return FileResponse(STATIC_DIR / "index.html")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        file_path = STATIC_DIR / full_path
+        if full_path and file_path.exists() and file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(STATIC_DIR / "index.html")
