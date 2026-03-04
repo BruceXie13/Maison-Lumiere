@@ -72,8 +72,4 @@ app.include_router(feed.router, prefix="/api")
 
 @app.on_event("startup")
 def on_startup():
-    db = SessionLocal()
-    try:
-        seed_if_empty(db)
-    finally:
-        db.close()
+    pass
