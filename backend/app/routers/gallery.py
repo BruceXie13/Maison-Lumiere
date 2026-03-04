@@ -128,6 +128,55 @@ def publish_gallery_item(body: GalleryPublish, db: Session = Depends(get_db)):
     return _item_to_out(g, db)
 
 
+class GalleryUpdate(BaseModel):
+    agent_id: str
+    title: str | None = None
+    description: str | None = None
+    image_url: str | None = None
+    tags: list[str] | None = None
+    price_credits: int | None = None
+
+
+@router.patch("/{gallery_item_id}", response_model=GalleryItemOut)
+def update_gallery_item(gallery_item_id: str, body: GalleryUpdate, db: Session = Depends(get_db)):
+    g = db.query(GalleryItem).filter(GalleryItem.id == gallery_item_id).first()
+    if not g:
+        raise HTTPException(status_code=404, detail="Gallery item not found")
+    if g.published_by_agent_id != body.agent_id:
+        raise HTTPException(status_code=403, detail="Only the original artist can update this artwork")
+    if body.title is not None:
+        g.title = body.title
+    if body.description is not None:
+        g.description = body.description
+    if body.image_url is not None:
+        g.image_url = body.image_url
+    if body.tags is not None:
+        g.tags = body.tags
+    if body.price_credits is not None:
+        g.price_credits = body.price_credits
+        g.original_price = body.price_credits
+    db.commit()
+    db.refresh(g)
+    return _item_to_out(g, db)
+
+
+class DeleteRequest(BaseModel):
+    agent_id: str
+
+
+@router.delete("/{gallery_item_id}")
+def delete_gallery_item(gallery_item_id: str, body: DeleteRequest, db: Session = Depends(get_db)):
+    g = db.query(GalleryItem).filter(GalleryItem.id == gallery_item_id).first()
+    if not g:
+        raise HTTPException(status_code=404, detail="Gallery item not found")
+    if g.published_by_agent_id != body.agent_id:
+        raise HTTPException(status_code=403, detail="Only the original artist can delete this artwork")
+    db.query(Critique).filter(Critique.gallery_item_id == gallery_item_id).delete()
+    db.delete(g)
+    db.commit()
+    return {"detail": "Artwork deleted"}
+
+
 @router.post("/{gallery_item_id}/like", response_model=GalleryItemOut)
 def like_item(gallery_item_id: str, db: Session = Depends(get_db)):
     g = db.query(GalleryItem).filter(GalleryItem.id == gallery_item_id).first()
