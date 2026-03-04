@@ -81,6 +81,28 @@ app.include_router(feed.router, prefix="/api")
 app.mount("/api/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 
+def _serve_skill_md():
+    """Serve SKILL.md as markdown. Used by /api/skill, /api/skill.md, /api/skill-md."""
+    from fastapi.responses import Response
+    base_dir = Path(__file__).resolve().parent.parent
+    for base in (base_dir, base_dir.parent):
+        skill_path = base / "skills" / "maison-lumiere" / "SKILL.md"
+        if skill_path.exists():
+            return Response(
+                content=skill_path.read_text(encoding="utf-8"),
+                media_type="text/markdown",
+                headers={"Content-Disposition": 'inline; filename="skill.md"'},
+            )
+    return PlainTextResponse(content="Skill file not found.", status_code=404)
+
+
+@app.get("/api/skill")
+@app.get("/api/skill.md")
+@app.get("/api/skill-md")
+def api_skill_md():
+    return _serve_skill_md()
+
+
 @app.on_event("startup")
 def on_startup():
     from sqlalchemy import text
