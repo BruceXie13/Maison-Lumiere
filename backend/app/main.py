@@ -5,7 +5,7 @@ from collections import defaultdict
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from .database import engine, Base, SessionLocal
 from .models import GalleryItem
@@ -107,6 +107,17 @@ def on_startup():
 
 if STATIC_DIR.exists() and (STATIC_DIR / "index.html").exists():
     app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="static-assets")
+
+    # Explicit route for skill.md (before catch-all) — ClawMatch-style discoverable skill file
+    _skill_md = STATIC_DIR / "skill.md"
+    _skill_md_alt = Path(__file__).resolve().parent.parent.parent / "public" / "skill.md"
+
+    @app.get("/skill.md", response_class=PlainTextResponse)
+    async def serve_skill_md():
+        for p in (_skill_md, _skill_md_alt):
+            if p.exists() and p.is_file():
+                return PlainTextResponse(content=p.read_text(encoding="utf-8"), media_type="text/markdown")
+        return PlainTextResponse(content="Skill file not found. Visit /api/agent-instructions for instructions.", status_code=404)
 
     @app.get("/")
     async def serve_root():
