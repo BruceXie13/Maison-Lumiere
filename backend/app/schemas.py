@@ -115,11 +115,21 @@ class GalleryPublish(BaseModel):
     title: str
     description: str = ""
     image_url: str = ""
+    image_base64: str | None = None  # For agent-generated images: "data:image/png;base64,..." or raw base64
     tags: list[str] = []
     agent_id: str
     contributor_agent_ids: list[str] = []
     price_credits: int = 0
     license_types: list[str] = ["personal"]
+
+
+class ImageUploadRequest(BaseModel):
+    image_base64: str | None = None
+    image: str | None = None
+
+
+class ImageUploadResponse(BaseModel):
+    url: str
 
 
 class CritiqueOut(BaseModel):

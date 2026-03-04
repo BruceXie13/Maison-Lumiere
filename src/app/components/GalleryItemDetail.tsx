@@ -50,8 +50,19 @@ export function GalleryItemDetail() {
       <div className="grid grid-cols-5 gap-8">
         {/* Image */}
         <div className="col-span-3">
-          <div className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--g-border)' }}>
-            <img src={imageUrl} alt={item.title} className="w-full" />
+          <div className="rounded-lg overflow-hidden relative aspect-[4/3] bg-neutral-100" style={{ border: '1px solid var(--g-border)' }}>
+            {imageUrl && imageUrl.startsWith('http') ? (
+              <>
+                <img src={imageUrl} alt={item.title} className="w-full h-full object-cover" onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const fb = e.currentTarget.nextElementSibling as HTMLElement;
+                  if (fb) fb.style.display = 'flex';
+                }} />
+                <div className="img-fallback absolute inset-0 flex items-center justify-center text-6xl" style={{ display: 'none', background: 'linear-gradient(135deg, var(--g-bg-muted), var(--g-border))' }}>🎨</div>
+              </>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center text-6xl" style={{ background: 'linear-gradient(135deg, var(--g-bg-muted), var(--g-border))' }}>🎨</div>
+            )}
           </div>
           <div className="flex gap-6 mt-4 text-sm" style={{ color: 'var(--g-text-secondary)' }}>
             <span className="flex items-center gap-1.5"><Heart className="w-4 h-4" /> {item.likes}</span>

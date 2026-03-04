@@ -3,7 +3,7 @@ import { useAgents } from '../../../hooks/useApi';
 import type { Agent, GalleryItem } from '../../data/mockData';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
-import { buyGalleryItem, likeGalleryItem, fetchGallery } from '../../../lib/api';
+import { likeGalleryItem, fetchGallery } from '../../../lib/api';
 import type { PaginatedGallery } from '../../../lib/api';
 
 const PER_PAGE = 12;
@@ -14,7 +14,6 @@ export function GalleryRoom() {
   const [page, setPage] = useState(1);
   const [gallery, setGallery] = useState<PaginatedGallery | null>(null);
   const [loading, setLoading] = useState(true);
-  const [buying, setBuying] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const { data: apiAgents } = useAgents(10000);
@@ -49,20 +48,6 @@ export function GalleryRoom() {
   const total = gallery?.total ?? 0;
 
   const allTags = ['all', ...new Set(items.flatMap((i: GalleryItem) => i.tags))];
-
-  const handleBuy = async (item: GalleryItem) => {
-    const buyer = agents.find((a: Agent) => a.id !== item.artistId);
-    if (!buyer) return;
-    setBuying(item.id);
-    try {
-      await buyGalleryItem(item.id, buyer.id);
-      loadGallery();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Purchase failed');
-    } finally {
-      setBuying(null);
-    }
-  };
 
   const handleLike = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -137,24 +122,42 @@ export function GalleryRoom() {
                     className="aspect-[4/3] overflow-hidden cursor-pointer relative bg-neutral-100"
                     onClick={() => navigate(`/gallery/${item.id}`)}
                   >
-                    <img
-                      src={(item as any).imageUrl || (item as any).image_url}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-300"
-                      loading="lazy"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        target.style.display = 'none';
-                        const placeholder = target.parentElement?.querySelector('.img-fallback') as HTMLElement;
-                        if (placeholder) placeholder.style.display = 'flex';
-                      }}
-                    />
-                    <div
-                      className="img-fallback absolute inset-0 items-center justify-center text-4xl hidden"
-                      style={{ background: 'linear-gradient(135deg, var(--g-bg-muted), var(--g-border))' }}
-                    >
-                      🎨
-                    </div>
+                    {(() => {
+                      const imgUrl = (item as any).imageUrl || (item as any).image_url || '';
+                      const hasValidUrl = imgUrl && imgUrl.startsWith('http');
+                      if (!hasValidUrl) {
+                        return (
+                          <div
+                            className="absolute inset-0 flex items-center justify-center text-4xl"
+                            style={{ background: 'linear-gradient(135deg, var(--g-bg-muted), var(--g-border))' }}
+                          >
+                            🎨
+                          </div>
+                        );
+                      }
+                      return (
+                        <>
+                          <img
+                            src={imgUrl}
+                            alt={item.title}
+                            className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-300"
+                            loading="lazy"
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              target.style.display = 'none';
+                              const placeholder = target.parentElement?.querySelector('.img-fallback') as HTMLElement;
+                              if (placeholder) placeholder.style.display = 'flex';
+                            }}
+                          />
+                          <div
+                            className="img-fallback absolute inset-0 flex items-center justify-center text-4xl hidden"
+                            style={{ background: 'linear-gradient(135deg, var(--g-bg-muted), var(--g-border))' }}
+                          >
+                            🎨
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
 
                   <div className="p-3.5">
@@ -189,13 +192,6 @@ export function GalleryRoom() {
                           onClick={(e) => handleLike(item.id, e)}
                         >
                           ♥ {item.likes}
-                        </button>
-                        <button
-                          className="pixel-button text-[11px] px-2.5 py-1"
-                          disabled={buying === item.id}
-                          onClick={() => handleBuy(item)}
-                        >
-                          {buying === item.id ? '...' : 'Buy'}
                         </button>
                       </div>
                     </div>

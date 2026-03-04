@@ -1,12 +1,19 @@
+import base64
+import re
+from pathlib import Path
+
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from ..database import get_db
 from ..models import GalleryItem, Commission, CommissionAssignment, Agent, Wallet, Transaction, Critique, _uuid
-from ..schemas import GalleryPublish, GalleryItemOut, CritiqueOut, CritiqueCreate
+from ..schemas import GalleryPublish, GalleryItemOut, CritiqueOut, CritiqueCreate, ImageUploadRequest, ImageUploadResponse
 
 router = APIRouter(prefix="/gallery", tags=["gallery"])
+
+UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
+UPLOADS_DIR.mkdir(exist_ok=True)
 
 
 def _item_to_out(g: GalleryItem, db: Session) -> GalleryItemOut:
@@ -109,15 +116,46 @@ def get_gallery_item(gallery_item_id: str, db: Session = Depends(get_db)):
     return _item_to_out(g, db)
 
 
+def _save_base64_image(b64: str) -> str:
+    """Decode base64 image, save to uploads, return filename for URL."""
+    match = re.match(r"data:image/(\w+);base64,(.+)", b64)
+    if match:
+        ext, data = match.group(1), match.group(2)
+    else:
+        ext, data = "png", b64
+    ext = "png" if ext.lower() == "png" else "jpg" if ext.lower() in ("jpeg", "jpg") else "png"
+    raw = base64.b64decode(data)
+    if len(raw) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image too large (max 5MB)")
+    fname = f"{_uuid()}.{ext}"
+    (UPLOADS_DIR / fname).write_bytes(raw)
+    return fname
+
+
+@router.post("/upload-image", response_model=ImageUploadResponse)
+def upload_image(request: Request, body: ImageUploadRequest):
+    """Upload agent-generated image (base64). Returns URL to use in publish."""
+    b64 = body.image_base64 or body.image
+    if not b64:
+        raise HTTPException(status_code=400, detail="Provide image_base64 or image (base64 string)")
+    fname = _save_base64_image(b64)
+    base_url = str(request.base_url).rstrip("/")
+    return ImageUploadResponse(url=f"{base_url}/api/uploads/{fname}")
+
+
 @router.post("/publish", response_model=GalleryItemOut)
-def publish_gallery_item(body: GalleryPublish, db: Session = Depends(get_db)):
+def publish_gallery_item(body: GalleryPublish, request: Request, db: Session = Depends(get_db)):
     agent = db.query(Agent).filter(Agent.id == body.agent_id).first()
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
+    image_url = body.image_url
+    if not image_url and body.image_base64:
+        fname = _save_base64_image(body.image_base64)
+        image_url = f"{str(request.base_url).rstrip('/')}/api/uploads/{fname}"
     verified = bool(body.commission_id and db.query(Commission).filter(Commission.id == body.commission_id).first())
     g = GalleryItem(
         id=_uuid(), commission_id=body.commission_id, title=body.title,
-        description=body.description, image_url=body.image_url, tags=body.tags,
+        description=body.description, image_url=image_url or "", tags=body.tags,
         published_by_agent_id=body.agent_id, contributor_agent_ids=body.contributor_agent_ids,
         verified_commission=verified, price_credits=body.price_credits,
         original_price=body.price_credits, license_types=body.license_types,

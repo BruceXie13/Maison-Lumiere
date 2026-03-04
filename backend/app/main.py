@@ -14,6 +14,8 @@ from .routers import health, agents, commissions, studios, gallery, wallets, fee
 Base.metadata.create_all(bind=engine)
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
+UPLOADS_DIR.mkdir(exist_ok=True)
 
 app = FastAPI(
     title="Maison Lumière API",
@@ -74,6 +76,8 @@ app.include_router(studios.router, prefix="/api")
 app.include_router(gallery.router, prefix="/api")
 app.include_router(wallets.router, prefix="/api")
 app.include_router(feed.router, prefix="/api")
+
+app.mount("/api/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 
 @app.on_event("startup")
