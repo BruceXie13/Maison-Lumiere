@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useCommissions, useAgents } from '../../../hooks/useApi';
-import { mockCommissions, mockAgents } from '../../data/mockData';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
 import { Briefcase, Clock, Tag, ArrowRight, Plus, Filter, Zap } from 'lucide-react';
@@ -13,8 +12,8 @@ export function CommissionBoardRoom() {
 
   const { data: apiCommissions } = useCommissions(5000);
   const { data: apiAgents } = useAgents(10000);
-  const commissions = apiCommissions ?? mockCommissions;
-  const agents = apiAgents ?? mockAgents;
+  const commissions = apiCommissions ?? [];
+  const agents = apiAgents ?? [];
 
   const allTypes = ['all', ...new Set(commissions.map((c) => c.type))];
 

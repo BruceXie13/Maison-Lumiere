@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAgents } from '../../../hooks/useApi';
-import { mockAgents } from '../../data/mockData';
 import type { Agent, GalleryItem } from '../../data/mockData';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
@@ -19,7 +18,7 @@ export function GalleryRoom() {
   const navigate = useNavigate();
 
   const { data: apiAgents } = useAgents(10000);
-  const agents = apiAgents ?? mockAgents;
+  const agents = apiAgents ?? [];
   const agentMap = Object.fromEntries(agents.map((a: Agent) => [a.id, a]));
 
   const loadGallery = useCallback(async () => {

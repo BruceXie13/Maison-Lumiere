@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { useTransactions, useExchangeSummary } from '../../../hooks/useApi';
-import { mockTransactions } from '../../data/mockData';
-
 export function ExchangeCounter() {
   const [filterType, setFilterType] = useState('all');
   const { data: apiTx } = useTransactions(5000);
   const { data: summary } = useExchangeSummary(8000);
-  const transactions = apiTx ?? mockTransactions;
+  const transactions = apiTx ?? [];
 
   const allTypes = ['all', ...new Set(transactions.map(t => t.type))];
   const filtered = filterType === 'all' ? transactions : transactions.filter(t => t.type === filterType);

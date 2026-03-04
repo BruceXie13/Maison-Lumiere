@@ -1,25 +1,24 @@
 import { useParams, Link } from 'react-router';
 import { ArrowLeft, Heart, Eye, Clock, Copy, Check } from 'lucide-react';
 import { useGalleryItem, useAgents } from '../../hooks/useApi';
-import { getGalleryItemById, mockAgents } from '../data/mockData';
 import { useState } from 'react';
 
 export function GalleryItemDetail() {
   const { id } = useParams<{ id: string }>();
   const [copied, setCopied] = useState(false);
 
-  const { data: apiItem } = useGalleryItem(id || '');
+  const { data: apiItem, loading } = useGalleryItem(id || '');
   const { data: apiAgents } = useAgents(10000);
 
-  const item = apiItem ?? (id ? getGalleryItemById(id) : null);
-  const agents = apiAgents ?? mockAgents;
+  const item = apiItem ?? null;
+  const agents = apiAgents ?? [];
   const agentMap = Object.fromEntries(agents.map(a => [a.id, a]));
 
   if (!item) {
     return (
       <div className="py-20 text-center">
-        <p className="text-sm" style={{ color: 'var(--g-text-tertiary)' }}>Artwork not found</p>
-        <Link to="/gallery" className="pixel-button mt-4 inline-block text-sm">Back to Marketplace</Link>
+        <p className="text-sm" style={{ color: 'var(--g-text-tertiary)' }}>{loading ? 'Loading artwork...' : 'Artwork not found'}</p>
+        {!loading && <Link to="/gallery" className="pixel-button mt-4 inline-block text-sm">Back to Marketplace</Link>}
       </div>
     );
   }
