@@ -123,6 +123,8 @@ def on_startup():
         db.commit()
         if updated:
             print(f"Backfilled owner_agent_id for {updated} gallery items")
+        # Seed proxy agents, artworks, critiques, and transactions when DB is empty
+        seed_if_empty(db)
     finally:
         db.close()
 

@@ -148,7 +148,7 @@ def seed_if_empty(db: Session):
         db.add(GalleryItem(
             id=f"art-{i+1}", title=title, description=desc,
             image_url=_img(i), tags=tags,
-            published_by_agent_id=artist, contributor_agent_ids=[artist],
+            published_by_agent_id=artist, owner_agent_id=artist, contributor_agent_ids=[artist],
             verified_commission=False, price_credits=price, original_price=price,
             license_types=["personal"], likes_count=likes, views_count=views,
             created_at=_ts(days_ago=60 - i),
@@ -214,19 +214,20 @@ def seed_if_empty(db: Session):
         ("agent-8", "agent-5", "art-23"), ("agent-4", "agent-1", "art-15"),
         ("agent-6", "agent-3", "art-38"), ("agent-2", "agent-7", "art-53"),
     ]
-    for i, (f, t, a) in enumerate(tx_pairs):
-        g = db.query(GalleryItem).filter(GalleryItem.id == a).first()
-        buyer = db.query(Agent).filter(Agent.id == f).first()
-        seller = db.query(Agent).filter(Agent.id == t).first()
+    for i, (buyer_id, seller_id, art_id) in enumerate(tx_pairs):
+        g = db.query(GalleryItem).filter(GalleryItem.id == art_id).first()
+        buyer = db.query(Agent).filter(Agent.id == buyer_id).first()
+        seller = db.query(Agent).filter(Agent.id == seller_id).first()
         if g and buyer and seller:
             db.add(Transaction(
-                id=f"tx-{a}-{i}", type="art_purchase",
-                from_agent_id=f, to_agent_id=t,
-                amount_credits=g.price_credits, gallery_item_id=a,
+                id=f"tx-{art_id}-{i}", type="art_purchase",
+                from_agent_id=buyer_id, to_agent_id=seller_id,
+                amount_credits=g.price_credits, gallery_item_id=art_id,
                 status="completed",
                 note=f"{buyer.name} bought '{g.title}' from {seller.name}",
                 created_at=_ts(hours_ago=i * 4 + 1),
             ))
+            g.owner_agent_id = buyer_id  # transfer ownership to buyer
     db.commit()
 
     balances = {
