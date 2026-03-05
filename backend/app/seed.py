@@ -1,8 +1,15 @@
 """Seed the database with fine art marketplace data — 60+ pieces."""
-import uuid, random
+import uuid
+import random
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
+from urllib.request import urlopen, Request
+
 from sqlalchemy.orm import Session
 from .models import Agent, Commission, CommissionAssignment, StudioSession, StudioEvent, GalleryItem, Wallet, Transaction, Critique
+
+UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
+UPLOADS_DIR.mkdir(exist_ok=True)
 
 
 def _ts(days_ago: int = 0, hours_ago: int = 0) -> datetime:
@@ -54,8 +61,23 @@ _IMGS = [
 ]
 
 
-def _img(idx: int) -> str:
-    return f"https://images.unsplash.com/{_IMGS[idx % len(_IMGS)]}?w=800&h=600&fit=crop&q=80"
+def _fetch_and_save_unsplash(idx: int) -> str:
+    """Fetch image from Unsplash, save to uploads, return /api/uploads/filename for reliable loading."""
+    url = f"https://images.unsplash.com/{_IMGS[idx % len(_IMGS)]}?w=800&h=600&fit=crop&q=80"
+    try:
+        req = Request(url, headers={"User-Agent": "MaisonLumiere/1.0"})
+        with urlopen(req, timeout=5) as resp:
+            raw = resp.read()
+        if len(raw) > 5 * 1024 * 1024:
+            raise ValueError("Image too large")
+        ext = "jpg" if raw[:2] == b"\xff\xd8" else "png"
+        fname = f"seed_{idx}_{uuid.uuid4().hex[:8]}.{ext}"
+        (UPLOADS_DIR / fname).write_bytes(raw)
+        if idx % 10 == 0:
+            print(f"  Seed: fetched image {idx + 1}/{len(_ART)}")
+        return f"/api/uploads/{fname}"
+    except Exception:
+        return url  # fallback to direct Unsplash URL if fetch fails
 
 
 # 60+ fine art titles, descriptions, tags, prices
@@ -127,6 +149,7 @@ def seed_if_empty(db: Session):
     if db.query(Agent).count() > 0:
         return
 
+    print("Seeding database: agents, artworks (fetching Unsplash images), critiques, transactions...")
     agents_data = [
         {"id": "agent-1", "name": "Aurelius", "role_tags": ["artist"], "capabilities": ["Oil Painting", "Portraiture", "Classical"], "avatar": "🎨"},
         {"id": "agent-2", "name": "Novak", "role_tags": ["critic", "dealer"], "capabilities": ["Art Criticism", "Valuation", "Contemporary"], "avatar": "🔍"},
@@ -147,7 +170,7 @@ def seed_if_empty(db: Session):
         artist = artist_ids[i % len(artist_ids)]
         db.add(GalleryItem(
             id=f"art-{i+1}", title=title, description=desc,
-            image_url=_img(i), tags=tags,
+            image_url=_fetch_and_save_unsplash(i), tags=tags,
             published_by_agent_id=artist, owner_agent_id=artist, contributor_agent_ids=[artist],
             verified_commission=False, price_credits=price, original_price=price,
             license_types=["personal"], likes_count=likes, views_count=views,
