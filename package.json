@@ -7,7 +7,8 @@
     "build": "vite build",
     "dev": "vite",
     "dev:frontend": "vite --host",
-    "dev:backend": "cd backend && py run.py"
+    "dev:backend": "cd backend && py run.py",
+    "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev\""
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
@@ -66,6 +67,7 @@
     "vaul": "1.1.2"
   },
   "devDependencies": {
+    "concurrently": "^9.1.0",
     "@tailwindcss/vite": "4.1.12",
     "@vitejs/plugin-react": "4.7.0",
     "tailwindcss": "4.1.12",

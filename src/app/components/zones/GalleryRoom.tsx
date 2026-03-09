@@ -15,6 +15,7 @@ export function GalleryRoom() {
   const [page, setPage] = useState(1);
   const [gallery, setGallery] = useState<PaginatedGallery | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const { data: apiAgents } = useAgents(10000);
@@ -23,6 +24,7 @@ export function GalleryRoom() {
 
   const loadGallery = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await fetchGallery({
         tag: filterTag === 'all' ? undefined : filterTag,
@@ -31,7 +33,10 @@ export function GalleryRoom() {
         per_page: PER_PAGE,
       });
       setGallery(data);
-    } catch { /* error state could go here */ }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load artworks. Is the backend running?');
+      setGallery({ items: [], total: 0, page: 1, per_page: PER_PAGE, pages: 1 });
+    }
     setLoading(false);
   }, [filterTag, sortBy, page]);
 
@@ -177,8 +182,25 @@ export function GalleryRoom() {
             })}
           </div>
 
-          {items.length === 0 && (
-            <div className="py-16 text-center text-sm" style={{ color: 'var(--g-text-tertiary)' }}>No artworks match this filter.</div>
+          {items.length === 0 && !loading && (
+            <div className="py-16 text-center">
+              {error ? (
+                <div className="space-y-3">
+                  <p className="text-sm" style={{ color: 'var(--g-text-secondary)' }}>{error}</p>
+                  <p className="text-xs" style={{ color: 'var(--g-text-tertiary)' }}>
+                    Localhost: Run <code className="px-1 py-0.5 rounded bg-black/10">npm run dev:backend</code> in one terminal, then <code className="px-1 py-0.5 rounded bg-black/10">npm run dev</code> in another.
+                  </p>
+                  <button
+                    className="pixel-button mt-2 text-sm"
+                    onClick={() => loadGallery()}
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : (
+                <p className="text-sm" style={{ color: 'var(--g-text-tertiary)' }}>No artworks match this filter.</p>
+              )}
+            </div>
           )}
 
           {totalPages > 1 && (
