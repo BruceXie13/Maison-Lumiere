@@ -3,7 +3,7 @@ import hashlib
 import os
 import re
 from pathlib import Path
-from urllib.parse import quote
+
 from urllib.request import urlopen, Request
 
 import random
@@ -22,44 +22,21 @@ router = APIRouter(prefix="/gallery", tags=["gallery"])
 UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
 UPLOADS_DIR.mkdir(exist_ok=True)
 
-# 150+ verified Unsplash photo IDs — art, abstract, landscape. Server fetches & saves for reliable loading.
-_CURATED_IMAGES = [
-    "photo-1541961017774-22349e4a1262", "photo-1618005182384-a83a8bd57fbe",
-    "photo-1549490349-8643362247b5", "photo-1543857778-c4a1a3e0b2eb",
-    "photo-1579783902614-a3fb3927b6a5", "photo-1578926375605-eaf7559b1458",
-    "photo-1578301978693-85fa9c0320b9", "photo-1544967082-d9d25d867d66",
-    "photo-1633186710895-309db2eca9e4", "photo-1482160549825-59d1b23cb208",
-    "photo-1506905925346-21bda4d32df4", "photo-1470071459604-3b5ec3a7fe05",
-    "photo-1441974231531-c6227db76b6e", "photo-1472214103451-9374bd1c798e",
-    "photo-1469474968028-56623f02e42e", "photo-1500534314263-0869cef4c4c0",
-    "photo-1505765050516-f72dcac9c60e", "photo-1533158326339-7f3cf2404354",
-    "photo-1515405295579-ba7b45403062", "photo-1550684376-efcbd6e3f031",
-    "photo-1604076913837-52ab5f600b2d", "photo-1573096108468-702f6014ef28",
-    "photo-1507908708918-778587c9e563", "photo-1519638399535-1b036603ac77",
-    "photo-1502691876148-a84978e59af8", "photo-1495195129352-aeb325a55b65",
-    "photo-1513364776144-60967b0f800f", "photo-1518998053901-5348d3961a04",
-    "photo-1501436513145-30f24e19fbd8", "photo-1490730141103-6cac27aaab94",
-    "photo-1508739773434-c26b3d09e071", "photo-1534759846116-5799c33ce22a",
-    "photo-1504608524841-42fe6f032b4b", "photo-1497436072909-60f360e1d4b1",
-    "photo-1518241353330-0f7941c2d9b5", "photo-1507003211169-0a1dd7228f2d",
-    "photo-1519125323398-675f0ddb6308", "photo-1465146344425-f00d5f5c8f07",
-    "photo-1475924156734-496f6cac6ec1", "photo-1511884642898-4c92249e20b6",
-    # Additional verified art/abstract (from Unsplash)
-    "photo-1541701494587-cb58502866ab", "photo-1524758634654-5fa6e8e4c7d8",
-    "photo-1536924940846-227afb31e2a5", "photo-1549388604-7d4d4a0c9c9c",
-    "photo-1519389950473-083ba190a6a7", "photo-1557683316-ef804a4746d5",
-    "photo-1557683304-673a3afd53ce", "photo-1513364776144-59467b7e8e38",
-    "photo-1518837696454-4c4f79d4e3a0", "photo-1507003211169-0a1dd7228f2e",
-    "photo-1557682250-0bd0d86f3bfc", "photo-1557682264-0198431efee7",
-    "photo-1493977392155-5157b97f5c", "photo-1501854147151-4195c55fd56b",
-    "photo-1515405295739-d25b33c0d2b6", "photo-1534033497182-e04c4846a891",
-    "photo-1542039891327-6597b69c1d2e", "photo-1555952494-ef92f43ea1f2",
-    "photo-1477959850875-149e6bcf8f26", "photo-1469475148322-7acf893f2194",
-    "photo-1441976999982-0d5b4d8e8f9a", "photo-1426609494651-0e1f2a3b4c5d",
-    "photo-1414013974897-1f2a3b4c5d6e", "photo-1401342685819-2a3b4c5d6e7f",
-    "photo-1397235486931-3b4c5d6e7f8a", "photo-1387135498043-4c5d6e7f8a9b",
-    "photo-1378045509155-5d6e7f8a9b0c", "photo-1368955520267-6e7f8a9b0c1d",
-    "photo-1359865531379-7f8a9b0c1d2e", "photo-1350775542491-8a9b0c1d2e3f",
+import shutil
+
+ART_DIR = Path(__file__).resolve().parent.parent / "art"
+
+_AI_ART_FILES = [
+    "art_01_crimson_fractures.png", "art_02_crystal_void.png",
+    "art_03_solar_burst.png", "art_04_bioluminescent.png",
+    "art_05_blue_horizon.png", "art_06_deep_field.png",
+    "art_07_ink_branches.png", "art_08_glitch_garden.png",
+    "art_09_terracotta.png", "art_10_echo_chamber.png",
+    "art_11_drift.png", "art_12_grid.png",
+    "art_13_monolith.png", "art_14_whisper_network.png",
+    "art_15_portrait_of_rain.png", "art_16_oscillation.png",
+    "art_17_crimson_thread.png", "art_18_event_horizon.png",
+    "art_19_autumn_corridor.png", "art_20_neural_bloom.png",
 ]
 
 
@@ -93,9 +70,7 @@ def _item_to_out(g: GalleryItem, db: Session) -> GalleryItemOut:
 
     img_url = g.image_url or ""
     if not img_url.strip():
-        img_url = f"/api/gallery/image-proxy?url={quote(_curated_image_url(seed=g.id))}"
-    elif "images.unsplash.com" in img_url or "unsplash.com" in img_url:
-        img_url = f"/api/gallery/image-proxy?url={quote(img_url)}"
+        img_url = _pick_local_art(seed=g.id)
     return GalleryItemOut(
         id=g.id,
         title=g.title,
@@ -192,7 +167,7 @@ def image_proxy(url: str):
 @router.get("/random-image", response_model=dict)
 def random_image(request: Request, tag: str | None = None):
     """Return a guaranteed-working image URL. Fetches and saves to our server for reliability."""
-    return {"url": _fetch_and_save_curated_image(tag, request)}
+    return {"url": _pick_local_art(seed=tag)}
 
 
 @router.get("/{gallery_item_id}", response_model=GalleryItemOut)
@@ -222,33 +197,22 @@ def _save_base64_image(b64: str) -> str:
     return fname
 
 
-def _curated_image_url(seed: str | None = None) -> str:
-    """Return Unsplash URL for a curated image (used when we can't fetch/save)."""
+def _pick_local_art(seed: str | None = None) -> str:
+    """Pick a bundled AI art image, copy to uploads if needed, return serving URL."""
     idx = (
-        int(hashlib.md5(seed.encode()).hexdigest(), 16) % len(_CURATED_IMAGES)
+        int(hashlib.md5(seed.encode()).hexdigest(), 16) % len(_AI_ART_FILES)
         if seed
-        else random.randint(0, len(_CURATED_IMAGES) - 1)
+        else random.randint(0, len(_AI_ART_FILES) - 1)
     )
-    pid = _CURATED_IMAGES[idx]
-    return f"https://images.unsplash.com/{pid}?w=800&h=600&fit=crop&q=80"
-
-
-def _fetch_and_save_curated_image(seed: str | None, request: Request) -> str:
-    """Fetch curated image from Unsplash, save to uploads, return our URL. Images load reliably from our server."""
-    unsplash_url = _curated_image_url(seed)
-    try:
-        req = Request(unsplash_url, headers={"User-Agent": "MaisonLumiere/1.0"})
-        with urlopen(req, timeout=10) as resp:
-            raw = resp.read()
-        if len(raw) > 5 * 1024 * 1024:
-            raise ValueError("Image too large")
-        ext = "jpg" if raw[:2] == b"\xff\xd8" else "png"
-        fname = f"curated_{_uuid()}.{ext}"
-        (UPLOADS_DIR / fname).write_bytes(raw)
-        base_url = str(request.base_url).rstrip("/")
-        return f"{base_url}/api/uploads/{fname}"
-    except Exception:
-        return unsplash_url  # fallback to direct Unsplash URL
+    fname = _AI_ART_FILES[idx]
+    dest = UPLOADS_DIR / fname
+    if not dest.exists():
+        src = ART_DIR / fname
+        if src.exists():
+            shutil.copy2(src, dest)
+        else:
+            return f"/api/art/{fname}"
+    return f"/api/uploads/{fname}"
 
 
 @router.post("/upload-image", response_model=ImageUploadResponse)
@@ -313,7 +277,7 @@ def publish_gallery_item(body: GalleryPublish, request: Request, db: Session = D
         image_url = f"{str(request.base_url).rstrip('/')}/api/uploads/{fname}"
     # Auto-assign curated image when none provided — fetch & save to our server for reliable loading
     if not image_url or not image_url.strip():
-        image_url = _fetch_and_save_curated_image(seed=body.title or body.agent_id, request=request)
+        image_url = _pick_local_art(seed=body.title or body.agent_id)
     verified = bool(body.commission_id and db.query(Commission).filter(Commission.id == body.commission_id).first())
     g = GalleryItem(
         id=_uuid(), commission_id=body.commission_id, title=body.title,

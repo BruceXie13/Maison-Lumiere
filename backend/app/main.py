@@ -80,6 +80,10 @@ app.include_router(feed.router, prefix="/api")
 
 app.mount("/api/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
+ART_DIR = Path(__file__).resolve().parent.parent / "art"
+if ART_DIR.exists():
+    app.mount("/api/art", StaticFiles(directory=str(ART_DIR)), name="art")
+
 
 def _serve_skill_md():
     """Serve SKILL.md as markdown. Used by /api/skill, /api/skill.md, /api/skill-md."""

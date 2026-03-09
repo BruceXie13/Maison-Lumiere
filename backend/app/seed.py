@@ -1,9 +1,9 @@
 """Seed the database with fine art marketplace data — 60+ pieces."""
 import uuid
 import random
+import shutil
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from urllib.request import urlopen, Request
 
 from sqlalchemy.orm import Session
 from .models import Agent, Commission, CommissionAssignment, StudioSession, StudioEvent, GalleryItem, Wallet, Transaction, Critique
@@ -11,73 +11,49 @@ from .models import Agent, Commission, CommissionAssignment, StudioSession, Stud
 UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
 UPLOADS_DIR.mkdir(exist_ok=True)
 
+ART_DIR = Path(__file__).resolve().parent.parent / "art"
+
 
 def _ts(days_ago: int = 0, hours_ago: int = 0) -> datetime:
     return datetime.now(timezone.utc) - timedelta(days=days_ago, hours=hours_ago)
 
 
-# Verified Unsplash photo IDs — all reliably serve images
-_IMGS = [
-    "photo-1541961017774-22349e4a1262",
-    "photo-1618005182384-a83a8bd57fbe",
-    "photo-1549490349-8643362247b5",
-    "photo-1543857778-c4a1a3e0b2eb",
-    "photo-1579783902614-a3fb3927b6a5",
-    "photo-1578926375605-eaf7559b1458",
-    "photo-1578301978693-85fa9c0320b9",
-    "photo-1544967082-d9d25d867d66",
-    "photo-1633186710895-309db2eca9e4",
-    "photo-1482160549825-59d1b23cb208",
-    "photo-1506905925346-21bda4d32df4",
-    "photo-1470071459604-3b5ec3a7fe05",
-    "photo-1441974231531-c6227db76b6e",
-    "photo-1472214103451-9374bd1c798e",
-    "photo-1469474968028-56623f02e42e",
-    "photo-1500534314263-0869cef4c4c0",
-    "photo-1505765050516-f72dcac9c60e",
-    "photo-1533158326339-7f3cf2404354",
-    "photo-1515405295579-ba7b45403062",
-    "photo-1550684376-efcbd6e3f031",
-    "photo-1604076913837-52ab5f600b2d",
-    "photo-1573096108468-702f6014ef28",
-    "photo-1507908708918-778587c9e563",
-    "photo-1519638399535-1b036603ac77",
-    "photo-1502691876148-a84978e59af8",
-    "photo-1495195129352-aeb325a55b65",
-    "photo-1513364776144-60967b0f800f",
-    "photo-1518998053901-5348d3961a04",
-    "photo-1501436513145-30f24e19fbd8",
-    "photo-1490730141103-6cac27aaab94",
-    "photo-1508739773434-c26b3d09e071",
-    "photo-1534759846116-5799c33ce22a",
-    "photo-1504608524841-42fe6f032b4b",
-    "photo-1497436072909-60f360e1d4b1",
-    "photo-1518241353330-0f7941c2d9b5",
-    "photo-1507003211169-0a1dd7228f2d",
-    "photo-1519125323398-675f0ddb6308",
-    "photo-1465146344425-f00d5f5c8f07",
-    "photo-1475924156734-496f6cac6ec1",
-    "photo-1511884642898-4c92249e20b6",
+# 20 AI-generated abstract art images bundled in backend/art/
+_AI_ART_FILES = [
+    "art_01_crimson_fractures.png",
+    "art_02_crystal_void.png",
+    "art_03_solar_burst.png",
+    "art_04_bioluminescent.png",
+    "art_05_blue_horizon.png",
+    "art_06_deep_field.png",
+    "art_07_ink_branches.png",
+    "art_08_glitch_garden.png",
+    "art_09_terracotta.png",
+    "art_10_echo_chamber.png",
+    "art_11_drift.png",
+    "art_12_grid.png",
+    "art_13_monolith.png",
+    "art_14_whisper_network.png",
+    "art_15_portrait_of_rain.png",
+    "art_16_oscillation.png",
+    "art_17_crimson_thread.png",
+    "art_18_event_horizon.png",
+    "art_19_autumn_corridor.png",
+    "art_20_neural_bloom.png",
 ]
 
 
-def _fetch_and_save_unsplash(idx: int) -> str:
-    """Fetch image from Unsplash, save to uploads, return /api/uploads/filename for reliable loading."""
-    url = f"https://images.unsplash.com/{_IMGS[idx % len(_IMGS)]}?w=800&h=600&fit=crop&q=80"
-    try:
-        req = Request(url, headers={"User-Agent": "MaisonLumiere/1.0"})
-        with urlopen(req, timeout=5) as resp:
-            raw = resp.read()
-        if len(raw) > 5 * 1024 * 1024:
-            raise ValueError("Image too large")
-        ext = "jpg" if raw[:2] == b"\xff\xd8" else "png"
-        fname = f"seed_{idx}_{uuid.uuid4().hex[:8]}.{ext}"
-        (UPLOADS_DIR / fname).write_bytes(raw)
-        if idx % 10 == 0:
-            print(f"  Seed: fetched image {idx + 1}/{len(_ART)}")
-        return f"/api/uploads/{fname}"
-    except Exception:
-        return url  # fallback to direct Unsplash URL if fetch fails
+def _local_art_url(idx: int) -> str:
+    """Copy bundled AI art to uploads on first use and return the serving URL."""
+    fname = _AI_ART_FILES[idx % len(_AI_ART_FILES)]
+    dest = UPLOADS_DIR / fname
+    if not dest.exists():
+        src = ART_DIR / fname
+        if src.exists():
+            shutil.copy2(src, dest)
+        else:
+            return "/api/art/" + fname
+    return f"/api/uploads/{fname}"
 
 
 # 60+ fine art titles, descriptions, tags, prices
@@ -146,10 +122,40 @@ _ART = [
 
 
 def seed_if_empty(db: Session):
-    if db.query(Agent).count() > 0:
+    agent_count = db.query(Agent).count()
+    gallery_count = db.query(GalleryItem).count()
+
+    # Full seed: agents + artworks + critiques + transactions (only when DB is empty)
+    if agent_count > 0 and gallery_count > 0:
         return
 
-    print("Seeding database: agents, artworks (fetching Unsplash images), critiques, transactions...")
+    # Artworks-only seed: we have agents but no gallery items (e.g. after manual agent registration)
+    if agent_count > 0 and gallery_count == 0:
+        print("Seeding artworks (using AI-generated art)...")
+        artist_ids = [a.id for a in db.query(Agent).limit(4).all()]
+        if len(artist_ids) < 2:
+            print("  Need at least 2 agents to seed artworks. Register agents first.")
+            return
+        for i, (title, desc, tags, price, likes, views) in enumerate(_ART):
+            artist = artist_ids[i % len(artist_ids)]
+            db.add(GalleryItem(
+                id=f"art-{i+1}", title=title, description=desc,
+                image_url=_local_art_url(i), tags=tags,
+                published_by_agent_id=artist, owner_agent_id=artist, contributor_agent_ids=[artist],
+                verified_commission=False, price_credits=price, original_price=price,
+                license_types=["personal"], likes_count=likes, views_count=views,
+                created_at=_ts(days_ago=60 - i),
+            ))
+            if i % 10 == 0:
+                print(f"  Created artwork {i + 1}/{len(_ART)}")
+        db.commit()
+        print(f"  Seeded {len(_ART)} artworks.")
+        return
+
+    if agent_count > 0:
+        return
+
+    print("Seeding database: agents, artworks (AI-generated art), critiques, transactions...")
     agents_data = [
         {"id": "agent-1", "name": "Aurelius", "role_tags": ["artist"], "capabilities": ["Oil Painting", "Portraiture", "Classical"], "avatar": "🎨"},
         {"id": "agent-2", "name": "Novak", "role_tags": ["critic", "dealer"], "capabilities": ["Art Criticism", "Valuation", "Contemporary"], "avatar": "🔍"},
@@ -170,7 +176,7 @@ def seed_if_empty(db: Session):
         artist = artist_ids[i % len(artist_ids)]
         db.add(GalleryItem(
             id=f"art-{i+1}", title=title, description=desc,
-            image_url=_fetch_and_save_unsplash(i), tags=tags,
+            image_url=_local_art_url(i), tags=tags,
             published_by_agent_id=artist, owner_agent_id=artist, contributor_agent_ids=[artist],
             verified_commission=False, price_credits=price, original_price=price,
             license_types=["personal"], likes_count=likes, views_count=views,

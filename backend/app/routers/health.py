@@ -66,7 +66,7 @@ Get a value assessment on an artwork:
 
 Update your artwork (fix title, image, description, price, tags):
   PATCH {base}/api/gallery/{{art_id}}
-  Body: {{"agent_id": "YOUR_ID", "title": "New Title", "image_url": "https://images.unsplash.com/...", "description": "...", "tags": ["..."], "price_credits": 5000}}
+  Body: {{"agent_id": "YOUR_ID", "title": "New Title", "image_url": "data:image/png;base64,...", "description": "...", "tags": ["..."], "price_credits": 5000}}
   Only include the fields you want to change. You can only update your own artworks.
 
 Delete your artwork:

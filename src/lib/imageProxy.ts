@@ -1,11 +1,19 @@
 /**
- * Route external image URLs through our API proxy to fix CORS/loading issues.
- * Unsplash and other external images often fail when loaded directly from the frontend.
+ * Image URL utilities for the gallery frontend.
+ * All seeded images are AI-generated and served locally from /api/uploads/ or /api/art/.
  */
 
-const FALLBACK_IDS = [
-  '1541961017774-22349e4a1262', '1618005182384-a83a8bd57fbe', '1549490349-8643362247b5',
-  '1543857778-c4a1a3e0b2eb', '1579783902614-a3fb3927b6a5', '1578926375605-eaf7559b1458',
+const LOCAL_ART = [
+  'art_01_crimson_fractures.png', 'art_02_crystal_void.png',
+  'art_03_solar_burst.png', 'art_04_bioluminescent.png',
+  'art_05_blue_horizon.png', 'art_06_deep_field.png',
+  'art_07_ink_branches.png', 'art_08_glitch_garden.png',
+  'art_09_terracotta.png', 'art_10_echo_chamber.png',
+  'art_11_drift.png', 'art_12_grid.png',
+  'art_13_monolith.png', 'art_14_whisper_network.png',
+  'art_15_portrait_of_rain.png', 'art_16_oscillation.png',
+  'art_17_crimson_thread.png', 'art_18_event_horizon.png',
+  'art_19_autumn_corridor.png', 'art_20_neural_bloom.png',
 ];
 
 function hashString(s: string): number {
@@ -17,30 +25,27 @@ function hashString(s: string): number {
   return Math.abs(h);
 }
 
-/** Get a proxied Unsplash URL for use as placeholder when image is missing. */
+/** Get a local AI art placeholder URL. */
 export function getProxiedPlaceholderUrl(seed?: string | number): string {
   const idx =
     typeof seed === 'number'
-      ? Math.abs(seed) % FALLBACK_IDS.length
-      : (seed ? hashString(String(seed)) : Math.floor(Math.random() * FALLBACK_IDS.length)) % FALLBACK_IDS.length;
-  const id = FALLBACK_IDS[Math.abs(idx) % FALLBACK_IDS.length];
-  const unsplashUrl = `https://images.unsplash.com/photo-${id}?w=800&h=600&fit=crop&q=80`;
-  return getProxiedImageUrl(unsplashUrl);
+      ? Math.abs(seed) % LOCAL_ART.length
+      : (seed ? hashString(String(seed)) : Math.floor(Math.random() * LOCAL_ART.length)) % LOCAL_ART.length;
+  return `/api/art/${LOCAL_ART[Math.abs(idx) % LOCAL_ART.length]}`;
 }
 
 /**
- * Convert an image URL to use our proxy when it's external (Unsplash etc).
- * Same-origin URLs (our uploads) are returned as-is.
- * Fixes mixed content: backend may return http:// URLs; we use current origin so https works.
+ * Normalize an image URL for reliable loading.
+ * - Relative URLs (/api/uploads/..., /api/art/...) pass through.
+ * - Same-origin absolute URLs get converted to use current origin (fixes http/https mismatch).
+ * - External URLs pass through as-is.
  */
 export function getProxiedImageUrl(url: string | null | undefined): string {
   if (!url || typeof url !== 'string' || !url.trim()) {
     return getProxiedPlaceholderUrl();
   }
   const u = url.trim();
-  // Relative URLs - use as-is
   if (u.startsWith('/')) return u;
-  // Same-origin absolute URL (e.g. http://... when page is https) - use current origin to fix mixed content
   if (typeof window !== 'undefined') {
     try {
       const urlObj = new URL(u);
@@ -51,13 +56,8 @@ export function getProxiedImageUrl(url: string | null | undefined): string {
       // ignore
     }
   }
-  // Already proxied or uploads (relative) - use as-is
-  if (u.includes('/api/uploads/') || u.includes('/api/gallery/image-proxy')) {
+  if (u.includes('/api/uploads/') || u.includes('/api/art/')) {
     return u;
-  }
-  // External (Unsplash etc) - route through proxy
-  if (u.includes('unsplash.com') || u.includes('images.unsplash.com')) {
-    return `/api/gallery/image-proxy?url=${encodeURIComponent(u)}`;
   }
   return u;
 }
