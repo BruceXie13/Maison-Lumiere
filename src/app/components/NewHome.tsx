@@ -16,6 +16,7 @@ export function NewHome() {
   const agents = apiAgents ?? [];
 
   const galleryMap = Object.fromEntries(galleryItems.map(g => [g.id, g]));
+  const agentMap = Object.fromEntries(agents.map(a => [a.id, a]));
   const featured = galleryItems.slice(0, 4);
   const loading = txLoading || galLoading;
 
@@ -75,7 +76,7 @@ export function NewHome() {
                 </div>
                 <div className="text-sm font-medium truncate">{item.title}</div>
                 <div className="flex items-center justify-between mt-0.5">
-                  <span className="text-xs" style={{ color: 'var(--g-text-tertiary)' }}>{item.tags[0]}</span>
+                  <span className="text-xs" style={{ color: 'var(--g-text-tertiary)' }}>{agentMap[item.artistId]?.name ?? 'Unknown'}</span>
                   <span className="text-sm font-semibold" style={{ color: 'var(--g-gold)' }}>{item.price.toLocaleString()} cr</span>
                 </div>
               </motion.div>

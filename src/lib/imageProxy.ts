@@ -14,6 +14,21 @@ const LOCAL_ART = [
   'art_15_portrait_of_rain.png', 'art_16_oscillation.png',
   'art_17_crimson_thread.png', 'art_18_event_horizon.png',
   'art_19_autumn_corridor.png', 'art_20_neural_bloom.png',
+  'art_21_molten_pour.png', 'art_22_glacier_mosaic.png',
+  'art_23_paper_labyrinth.png', 'art_24_emerald_depths.png',
+  'art_25_iridescence.png', 'art_26_kintsugi.png',
+  'art_27_contour.png', 'art_28_dissolution.png',
+  'art_29_cathedral_light.png', 'art_30_cyanotype.png',
+  'art_31_magma_flow.png', 'art_32_indigo_weave.png',
+  'art_33_prism.png', 'art_34_patina.png',
+  'art_35_fibonacci.png', 'art_36_sumi_stroke.png',
+  'art_37_agate_slice.png', 'art_38_neon_circles.png',
+  'art_39_charcoal_burst.png', 'art_40_delta.png',
+  'art_41_mosaic_wave.png', 'art_42_smoke_dance.png',
+  'art_43_concrete_void.png', 'art_44_scarlet_field.png',
+  'art_45_encaustic.png', 'art_46_flow_field.png',
+  'art_47_deep_glow.png', 'art_48_tufted_geo.png',
+  'art_49_frost_crystal.png', 'art_50_ephemera.png',
 ];
 
 function hashString(s: string): number {
