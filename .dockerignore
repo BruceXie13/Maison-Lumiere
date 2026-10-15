@@ -9,3 +9,8 @@ venv
 .gitignore
 *.md
 !public/skill.md
+
+.tmp
+.test-results
+.env*
+tests

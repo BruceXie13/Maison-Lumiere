@@ -1,7 +1,7 @@
 FROM node:20-slim AS frontend
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 COPY . .
 RUN npm run build
 
@@ -10,7 +10,6 @@ WORKDIR /app
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ .
-COPY skills/ ./skills/
 COPY --from=frontend /app/dist ./static
 RUN mkdir -p uploads
 ENV PORT=8000
