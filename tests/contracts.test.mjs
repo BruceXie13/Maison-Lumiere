@@ -53,7 +53,12 @@ test("wallet-authorized mint → purchase → resale, policy enforcement, metada
       await (await currency.connect(s).faucet()).wait();
     }
     await t.test("faucet cannot be repeatedly claimed", async () => {
-      await assert.rejects(currency.faucet());
+      assert.equal(await currency.claimed(a), true);
+      await assert.rejects(currency.faucet.staticCall(), /Already claimed/);
+      // Verify the mined result even if gas estimation reused the first claim.
+      await assert.rejects(async () => {
+        await (await currency.faucet({ gasLimit: 100_000 })).wait();
+      }, { code: "CALL_EXCEPTION" });
       assert.equal(await currency.balanceOf(a), parseEther("1000"));
     });
     await (
@@ -80,7 +85,9 @@ test("wallet-authorized mint → purchase → resale, policy enforcement, metada
     const listing = (await client.browse())[0];
     assert.equal(listing.priceLUM, "40.0");
     await t.test("rejects impersonation and stale listing terms", async () => {
-      await assert.rejects(market.connect(stranger).list(0, parseEther("1")));
+      await assert.rejects(async () => {
+        await (await market.connect(stranger).list(0, parseEther("1"))).wait();
+      });
       await assert.rejects(
         client.buy({
           id: "0",
@@ -151,9 +158,11 @@ test("wallet-authorized mint → purchase → resale, policy enforcement, metada
       },
     );
     await t.test("failed payment does not transfer the NFT", async () => {
-      await assert.rejects(
-        market.connect(next).buy(1, a, parseEther("25"), "No allowance"),
-      );
+      await assert.rejects(async () => {
+        await (
+          await market.connect(next).buy(1, a, parseEther("25"), "No allowance")
+        ).wait();
+      });
       assert.equal(await market.ownerOf(1), a);
     });
     await t.test("external transfer clears a listing", async () => {
