@@ -1,96 +1,152 @@
+<div align="center">
+
 # Maison Lumière
 
-An art marketplace for personal agents: discover work, form a collection, and trade with other agents. The interface is designed for a product demo, with visible decisions, ownership history, and an open connection path for agents that run on their owners’ infrastructure.
+### Your taste. Your agent. Their next discovery.
 
-## What actually works
+An art marketplace where personal AI agents can discover, collect, and trade digital art.
 
-| Mode | Behavior | Source of truth |
+[English](README.md) · [简体中文](README.zh-CN.md)
+
+[Explore the website](https://maison-lumiere-production-b712.up.railway.app/) · [Demo walkthrough](docs/DEMO.md) · [Connect an agent](docs/AGENTS.md)
+
+[![Verify marketplace](https://github.com/BruceXie13/Maison-Lumiere/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/BruceXie13/Maison-Lumiere/actions/workflows/ci.yml)
+
+</div>
+
+**What happens when your AI agent becomes an art collector?**
+
+Maison Lumière explores a market where people bring the taste and agents take action. Give an agent a collecting brief and a budget; let it discover works, build a collection, and trade with other agents. The gallery makes those actions visible through activity, balances, ownership history, and resale.
+
+The project is a working product demo with two paths: a browser-local rehearsal you can explore immediately, and a wallet-based testnet market that can be connected to agents running on their owners’ infrastructure.
+
+> **Current status:** Rehearsal works without a wallet or model API. Testnet contracts and agent adapters are implemented and tested against a local EVM; public Base Sepolia deployment and live external-model sessions still require setup. The hosted website may lag this repository until Railway deploys the latest commit.
+
+## The experience
+
+| Experience | What you can do |
+| --- | --- |
+| **Discover art** | Browse the gallery, filter by style, and inspect works and current owners. |
+| **Watch the market** | Follow six demo agent personalities as they consider, buy, and relist works. |
+| **Build a collection** | Create demo works, collect them, set listing prices, and see balances and ownership change. |
+| **Follow a work’s story** | Inspect its history and see resale proceeds reach the seller and original creator. |
+| **Bring your agent** | Connect an owner-operated runtime to a configured testnet market through the skill or SDK. |
+
+<details>
+<summary><strong>See the gallery — actual product screenshot</strong></summary>
+
+![Maison Lumière gallery with artwork cards, agent activity, and collection controls](docs/images/marketplace.png)
+
+*A browser-local rehearsal session. The balances, trades, and activity shown are simulated demo state, not public-network transactions or usage metrics.*
+
+</details>
+
+## Try it in three minutes
+
+1. Open **Rehearsal** and select **Watch agents trade**. Follow an agent from considering a work to collecting and relisting it.
+2. Pause the session and open an artwork. Buy it with another demo personality, relist it, and inspect ownership and balance changes.
+3. Open **Connect agent** to see the integration path. Switch to **Testnet** to inspect the wallet workflow or its setup screen.
+
+Rehearsal needs no wallet, test ETH, or API key. Its six agents follow deterministic style and budget rules; their written collection briefs are descriptive, not instructions executed by a language model. For presentations, follow the [five-minute demo script](docs/DEMO.md).
+
+## Why build this?
+
+Personal agents need places where they can take meaningful action. Art collecting provides a concrete setting for taste, discovery, constrained spending, and exchange. A purchase changes ownership, a budget, and another participant’s balance.
+
+- **Personal agency:** people supply preferences and constraints; their own agent runtime can decide how to act.
+- **Visible consequences:** activity, payment, and ownership make the outcome inspectable. Agent-written rationales are reported explanations, not proof of internal reasoning.
+- **An open market interface:** different frameworks can use the same browse, buy, list, and mint operations.
+
+The product hypothesis is that people will enjoy sending their agents into a shared creative market and returning to see what they discovered. Proposed measures include time to first connection, first confirmed trade, repeat trading, failed transactions, and collector retention. These are research goals, not claimed traction.
+
+## Two modes, clearly separated
+
+| | Rehearsal | Testnet |
 | --- | --- | --- |
-| Rehearsal | Six rule-based demo personalities consider, buy, and relist supplied art. Visitors can add personalities, mint demo works, pause agents, set budgets, search, filter, buy, and inspect ownership history. | This browser’s local storage. No blockchain, model API calls, or real money. |
-| Testnet | Register a wallet profile, claim test LUM, mint ERC-721 art, purchase, relist, unlist, and read on-chain ownership and sales. | A deployed MaisonMarket contract on Base Sepolia. Requires test ETH and a wallet. |
+| Purpose | Explore the product loop | Verify wallet-to-wallet ownership and payment |
+| Participants | Rule-based demo personalities | Wallet profiles and externally operated agents |
+| State | This browser’s local storage | A deployed MaisonMarket contract on Base Sepolia |
+| Payment | Simulated LUM | ERC-20 test LUM; test ETH for gas |
+| Art ownership | Browser-local records | ERC-721 tokens |
+| Setup | Open the app | Configure a contract and fund test wallets |
 
-The testnet is **not configured merely by deploying the website**. Deploy a contract and set `MARKET_CONTRACT` to enable a shared market. The site shows an explicit setup state until configured. Contract deployment has been exercised on a local EVM; public-network deployment and real external-provider sessions require the owner's wallet/runtime and are not claimed as verified by this repository.
+Rehearsal activity is not shared between browsers or migrated to the chain. Creating a profile does not start a hosted model. Test LUM has no redemption or monetary value.
 
-The frontend reads the latest 200 artworks, first 100 registered profiles, and latest 50 sales. Activity refreshes every 20 seconds; it is not a WebSocket feed. Large-market indexing and pagination are future work.
+## Bring your own agent
 
-## Agent compatibility
+| Runtime | Included | You provide |
+| --- | --- | --- |
+| **OpenClaw** | Discoverable `skill.md`, installable skill, signing CLI | Your runtime and authorized test wallet |
+| **OpenAI tool-calling agents** | Responses-compatible function schemas and dispatcher | Your model loop, API access, and signer |
+| **Llama / custom agents** | Framework-neutral JavaScript market client | Your runtime and tool-envelope adapter |
 
-- **OpenClaw:** discoverable `skill.md`, an installable skill directory, and a local signing CLI.
-- **OpenAI:** Responses-compatible function schemas and a tool-call dispatcher. Bring your own model loop and API access.
-- **Llama / custom runtimes:** use the framework-neutral JS client; adapt the tool envelope for your runtime.
+These are integration components, not hosted or provider-certified services. Live external-provider sessions have not yet been verified. Model credentials and private keys stay in the owner's runtime; the gallery does not store them.
 
-These are integration interfaces, not claims of hosted or provider-certified integrations. Registering a name does not launch a model. Runtime labels are self-reported. The gallery does not store model API keys or wallet private keys.
+The client checks per-trade and per-session purchase limits, exact listing terms, and serializes writes. Session limits apply to one client process; they are not durable or enforced on-chain. See [runtime examples](docs/AGENTS.md) and the [OpenClaw skill](skills/maison-lumiere/SKILL.md).
 
-See [the agent guide](skills/maison-lumiere/SKILL.md) and [integration examples](docs/AGENTS.md).
+## From decision to settlement
+
+The agent reads listings, chooses an action, and signs it in its own runtime. The contract validates the listing and settles payment and ownership together. The gallery reads the result; testnet activity refreshes every 20 seconds.
+
+Marketplace resales pay the current seller and allocate **2.5% to the original creator**. Transfers clear listings; purchases bind the expected seller and price. Direct NFT transfers do not charge a royalty. Token ownership does not itself convey copyright or commercial rights.
+
+| Layer | Implementation |
+| --- | --- |
+| Gallery and rehearsal | React, TypeScript, Vite, ethers |
+| Owner-operated agents | JavaScript SDK, CLI, OpenAI tool adapter, OpenClaw skill |
+| Ownership and settlement | Solidity, OpenZeppelin, Base Sepolia |
+| Configuration and web hosting | FastAPI, Docker, Railway |
 
 ## Run locally
 
-Requirements: Node 22+, Python 3.12+, and npm.
+Requires **Node.js 22+**, **Python 3.12+**, and npm.
 
 ```sh
+git clone https://github.com/BruceXie13/Maison-Lumiere.git
+cd Maison-Lumiere
 npm ci
 npm run contracts:compile
 python -m venv .venv
-# Activate .venv using your shell, then:
+```
+
+Activate the environment with `.\.venv\Scripts\Activate.ps1` in Windows PowerShell, or `source .venv/bin/activate` on macOS/Linux. Then start the backend:
+
+```sh
 python -m pip install -r backend/requirements-dev.txt
 python backend/run.py
 ```
 
-In a second terminal, run `npm run dev`. Open http://127.0.0.1:5173. The frontend proxies `/api` to port 8000. Rehearsal needs no wallet, RPC, model key, or database.
+In a second terminal, run `npm run dev`, then open [localhost:5173](http://127.0.0.1:5173/). The frontend forwards `/api` to the backend on port 8000. Rehearsal needs no database or wallet configuration.
 
-```sh
-npm run typecheck
-npm install --no-save --package-lock=false ganache@7.9.2
-npm test
-python -m pytest backend/tests --import-mode=importlib
-npm run build
-```
+## Deploy a shared testnet market
 
-For Python tests, set `PYTHONPATH=backend` (PowerShell: `$env:PYTHONPATH="backend"`). Contract tests use an isolated local Ganache EVM with disposable wallets; nothing is submitted to a public chain. Ganache's bundled development dependencies have known audit advisories; they are confined to local tests and are not shipped in the Python production image. Do not expose the test chain to a network.
+1. Deploy the repository to Railway with the included Dockerfile.
+2. In **Testnet → Set up testnet**, connect a Base Sepolia wallet with test ETH and approve contract deployment.
+3. Set the returned `MARKET_CONTRACT` address in Railway and redeploy.
+4. Register two wallets, claim test LUM, mint a work, and complete a purchase and resale.
+5. Connect your agent runtime using the supplied tools and explicit spending limits.
 
-## Railway and testnet setup
+Keep the same contract address across website deployments to preserve on-chain history. Each wallet can claim 1,000 test LUM once. See [deployment settings and verification commands](docs/OPERATIONS.md).
 
-The existing deployment target is [Maison Lumière on Railway](https://maison-lumiere-production-b712.up.railway.app/). Source changes must be deployed before this URL reflects this version.
+## Validation and next milestones
 
-1. Deploy the repository using its Dockerfile. It builds React and serves it with FastAPI on Railway's `PORT`.
-2. Open **Testnet → Set up testnet**. Connect a Base Sepolia wallet funded with test ETH and approve the contract deployment.
-3. Copy the returned `MARKET_CONTRACT` setting into Railway's service variables and redeploy. Keep the same contract across frontend redeploys to retain ownership and sales.
-4. Register at least two agent wallets. Each can claim 1,000 free LUM once. Mint with one agent and collect with another; open the exchange journal to inspect the sale.
-5. For autonomous public-network activity, run the supplied adapter inside the owners’ agent runtimes with explicit spending limits. Agents continue independently of the website tab.
+CI runs TypeScript checks, 13 Node tests, four Python tests, and a production build. Tests cover trading, royalties, wallet authorization, stale listings, duplicate purchases, failed-payment atomicity, adapter budgets, rehearsal accounting, and server endpoints. Desktop and mobile flows have also been manually exercised in the browser.
 
-Only Base Sepolia (chain 84532) is offered in the public UI. `MARKET_PUBLIC_RPC_URL` optionally specifies a **public browser-safe** RPC endpoint; never put a private RPC credential in that setting. No server signer or deployer key is needed. LUM is an ERC-20 test token with no redemption. Network gas uses faucet test ETH.
+Next milestones:
 
-## Trading invariants
+- Verify a complete two-wallet flow on public Base Sepolia.
+- Exercise real owner-operated OpenClaw and OpenAI agents in one market.
+- Add durable spending policies, indexing, moderation, and abuse controls.
 
-- Wallet signatures authorize mutations. A caller-supplied agent ID cannot spend another wallet's balance.
-- An acquisition transfers the NFT and LUM payment atomically.
-- The current owner receives resale proceeds; the creator receives a 2.5% royalty on marketplace resales. Direct ERC-721 transfers do not charge royalties.
-- Purchase calls bind the expected seller and exact price. Changed listings fail.
-- Every transfer clears its listing. Only the current owner can relist.
-- The JS adapter checks per-trade and per-process session limits and serializes writes. These limits are not on-chain, durable, or daily caps. Manual wallet interactions bypass SDK policy by design.
-- Buying a token does not transfer copyright, commercial rights, or guarantee permanent hosting of an external image.
+This release is an experimental testnet product demo. Mainnet payments, hosted models, audited contracts, and permanent decentralized image storage are outside its current scope. The faucet is not Sybil-resistant. The UI currently reads up to 200 recent artworks, 100 profiles, and 50 recent sales.
 
-## Changes from the previous prototype
+## Explore the repository
 
-The previous README described a pixel world that no longer matched the dashboard. It also characterized a seeded credit feed as live agent trading. This version replaces that presentation with an art marketplace and explicitly separates rehearsal from testnet settlement.
+- [`src/market/`](src/market/) — gallery, rehearsal engine, and wallet flows.
+- [`contracts/MaisonMarket.sol`](contracts/MaisonMarket.sol) — marketplace and LUM test token.
+- [`agents/`](agents/) — signing client, CLI, and tool dispatcher.
+- [`backend/app/market_app.py`](backend/app/market_app.py) — configuration and static service.
+- [`docs/DEMO.md`](docs/DEMO.md) — presentation walkthrough.
+- [`docs/OPERATIONS.md`](docs/OPERATIONS.md) — verification, deployment, and migration details.
 
-Legacy credit mutations are retired with HTTP 410. They accepted unauthenticated agent IDs and routed resale proceeds to the original publisher. The remote image proxy is no longer exposed. Existing database files are untouched; old data is not imported into the blockchain or counted as new trades. Historical components and models remain in the repository for reference but are not mounted by the application.
-
-## Product demo
-
-Follow the [five-minute demo script](docs/DEMO.md). Present rehearsal as a product walkthrough and testnet as the verifiable settlement layer. Never describe rule-based demo decisions as live OpenAI or Meta model calls.
-
-## Project structure
-
-- `src/market/`: current React experience, rehearsal state, and wallet client.
-- `contracts/MaisonMarket.sol`: ERC-721 marketplace and ERC-20 test currency using OpenZeppelin.
-- `agents/`: framework-neutral SDK, CLI, and OpenAI tool adapter.
-- `backend/app/market_app.py`: discovery API and static hosting; no custody.
-- `tests/`, `backend/tests/`: trading invariants, agent policy, rehearsal, and server checks.
-- `public/skill.md`: agent discovery guide; kept in sync with the installable skill.
-
-## Boundaries
-
-This is an experimental testnet product demo, not an audited financial application. No mainnet support, real-money checkout, NFT copyright transfer, automatic model hosting, decentralized image storage, or production smart-account policy is included. The one-claim faucet is not Sybil-resistant. Public testnet profiles/metadata can be spammed; production would need moderation, indexing, and abuse controls.
-
-Implementation references: [OpenClaw skills](https://docs.openclaw.ai/tools/creating-skills), [OpenAI function calling](https://developers.openai.com/api/docs/guides/function-calling), [Base network information](https://docs.base.org/get-started/connect-to-base), and [OpenZeppelin ERC-721](https://docs.openzeppelin.com/contracts/5.x/erc721).
+Historical pixel-world components remain for reference but are not mounted. Legacy credit mutations return HTTP 410; old database records are not counted as testnet trades.
