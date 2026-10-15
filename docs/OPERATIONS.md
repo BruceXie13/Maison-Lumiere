@@ -50,7 +50,7 @@ For Python tests, set `PYTHONPATH=backend` (PowerShell: `$env:PYTHONPATH="backen
 
 ## Railway and testnet setup
 
-The existing deployment target is [Maison Lumière on Railway](https://maison-lumiere-production-b712.up.railway.app/). Source changes must be deployed before this URL reflects this version.
+The existing deployment target is [Maison Lumière on Railway](https://maison-lumiere-agents.up.railway.app/). Source changes must be deployed before this URL reflects this version.
 
 1. Deploy the repository using its Dockerfile. It builds React and serves it with FastAPI on Railway's `PORT`.
 2. Open **Testnet → Set up testnet**. Connect a Base Sepolia wallet funded with test ETH and approve the contract deployment.

@@ -19,7 +19,8 @@ import {
   LoaderCircle,
 } from "lucide-react";
 import {
-  initialMarket,
+  sampleMarket,
+  restoreMarket,
   tick,
   buy,
   relist,
@@ -44,16 +45,9 @@ import "./market.css";
 const STORAGE = "maison-rehearsal-v1";
 function restore(): Market {
   try {
-    const m = JSON.parse(localStorage.getItem(STORAGE) || "null");
-    if (
-      m?.version === 1 &&
-      Array.isArray(m.art) &&
-      Array.isArray(m.agents) &&
-      Array.isArray(m.activity)
-    )
-      return m;
+    return restoreMarket(JSON.parse(localStorage.getItem(STORAGE) || "null"));
   } catch {}
-  return initialMarket();
+  return sampleMarket();
 }
 function amount(n: number) {
   return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -98,7 +92,9 @@ function Marketplace() {
       activity: [],
       step: 0,
     });
-  const [mode, setMode] = useState<"demo" | "testnet">("demo"),
+  const [mode, setMode] = useState<"demo" | "testnet">(
+      new URLSearchParams(window.location.search).get("mode") === "testnet" ? "testnet" : "demo",
+    ),
     [running, setRunning] = useState(false),
     [cfg, setCfg] = useState<Config>(defaultConfig);
   const [query, setQuery] = useState(""),
@@ -146,7 +142,6 @@ function Marketplace() {
     config()
       .then((c) => {
         setCfg(c);
-        if (c.configured) setMode("testnet");
       })
       .catch((e) => setError(errorMessage(e)));
   }, []);
@@ -258,6 +253,14 @@ function Marketplace() {
     setRunning(false);
     setSelected(null);
     setError("");
+    setQuery("");
+    setStyle("All works");
+    setOnlyListed(false);
+  }
+  function browseDemo() {
+    switchMode("demo");
+    navigate("/?mode=demo#collection");
+    requestAnimationFrame(() => document.getElementById("collection")?.scrollIntoView({ behavior: "smooth" }));
   }
   async function copy(text: string) {
     try {
@@ -320,7 +323,7 @@ function Marketplace() {
       <div className="mode-bar">
         <span>
           <span className={`status-dot ${running ? "pulse" : ""}`} />
-          {mode === "demo" ? "Rehearsal studio" : "Base Sepolia testnet"}
+          {mode === "demo" ? "Demo gallery · Rehearsal" : "Base Sepolia testnet"}
           <span className="mode-explanation">
             {mode === "demo"
               ? "Simulated agents & tokens · saved in this browser"
@@ -497,12 +500,14 @@ function Marketplace() {
                 network fees; LUM is free test currency.
               </p>
             </div>
-            <button
-              className="button dark"
-              onClick={() => setDialog("settings")}
-            >
-              Set up testnet <ArrowUpRight size={16} />
-            </button>
+            <div className="setup-actions">
+              <button className="button dark" onClick={browseDemo}>
+                Browse demo artworks <ArrowRight size={16} />
+              </button>
+              <button className="button outline" onClick={() => setDialog("settings")}>
+                Set up testnet <ArrowUpRight size={16} />
+              </button>
+            </div>
           </section>
         ) : (
           <section className="stat-strip" aria-label="Market statistics">
@@ -680,6 +685,17 @@ function Marketplace() {
                   Create a work <Plus size={15} />
                 </button>
               </div>
+              {mode === "demo" && (
+                <div className="demo-intro">
+                  <div>
+                    <strong>A collection ready to explore.</strong>
+                    <p>{catalog.length} sample artworks, six collectors, and a story of first purchases and resales. All activity is simulated.</p>
+                  </div>
+                  <button className="text-button" onClick={() => { setRunning(false); setDialog("reset"); }}>
+                    Load sample collection <RotateCcw size={14} />
+                  </button>
+                </div>
+              )}
               <div className="collection-tools">
                 <label className="search">
                   <Search size={15} />
@@ -780,10 +796,15 @@ function Marketplace() {
                       : "A gallery starts with a first work."}
                   </h3>
                   <p>
-                    {query
-                      ? "Try another title or clear the filters."
-                      : "Mint an artwork with your agent to begin."}
+                    {mode === "testnet" && !m.art.length
+                      ? "This testnet has no artworks yet. Explore the populated demo gallery while the on-chain collection is being set up."
+                      : "Try another title or clear the filters."}
                   </p>
+                  {mode === "testnet" && !m.art.length && (
+                    <button className="button dark" onClick={browseDemo}>
+                      Explore demo collection <ArrowRight size={15} />
+                    </button>
+                  )}
                   <button
                     className="button outline"
                     onClick={() => {
@@ -1536,25 +1557,31 @@ function Marketplace() {
         busy={busy}
         open={dialog === "reset"}
         onClose={() => setDialog(null)}
-        title="Reset rehearsal?"
+        title="Load sample collection?"
       >
-        <h2>A fresh beginning?</h2>
+        <h2>A gallery with a story.</h2>
         <p className="modal-intro">
-          This clears this browser’s simulated trades, artwork, and custom
-          personalities. The public testnet is unaffected.
+          Load {catalog.length} sample artworks, six collectors, and eight example
+          purchases, including resales and creator royalties. This replaces this
+          browser’s simulated trades, artwork, and custom personalities.
+          The public testnet is unaffected.
         </p>
         <button
           className="button dark full"
           onClick={() => {
             setRunning(false);
-            setDemo(initialMarket());
+            setDemo(sampleMarket());
             setBuyer("demo-1");
             setBudgetAgent("demo-1");
+            setQuery("");
+            setStyle("All works");
+            setOnlyListed(false);
+            setSelected(null);
             setDialog(null);
-            setNotice("Rehearsal reset. Ready for a new presentation.");
+            setNotice("Sample collection loaded. Ready to explore and trade.");
           }}
         >
-          Reset rehearsal
+          Load sample collection
         </button>
       </Modal>
     </div>
@@ -1582,6 +1609,7 @@ function ActivityRow({
         <div className="activity-title">
           <strong>{agent?.name || short(event.agent)}</strong>
           <span>
+            {event.sample && "Sample · "}
             {new Date(event.time).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",

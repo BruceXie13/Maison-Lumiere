@@ -11,7 +11,7 @@ const source = ts.transpileModule(
     },
   },
 ).outputText;
-const { initialMarket, buy, relist, tick, safeImage } = await import(
+const { initialMarket, sampleMarket, restoreMarket, buy, relist, tick, safeImage } = await import(
   "data:text/javascript;base64," + Buffer.from(source).toString("base64")
 );
 test("rehearsal resale pays current owner and creator; balances are conserved", () => {
@@ -55,4 +55,42 @@ test("image sources reject script and insecure protocols", () => {
     safeImage("https://example.com/a.png"),
     "https://example.com/a.png",
   );
+});
+
+test("sample collection has artwork assets and a consistent, labeled resale ledger", () => {
+  const m = sampleMarket(1_800_000_000_000);
+  assert.equal(m.art.length, 18);
+  assert.equal(m.agents.length, 6);
+  const purchases = m.activity.filter(e => e.kind === "buy");
+  assert.equal(purchases.length, 8);
+  assert.equal(purchases.filter(e => e.royalty > 0).length, 2);
+  assert.ok(m.activity.every(e => e.sample && !e.hash && !e.block));
+  assert.equal(new Set(m.activity.map(e => e.id)).size, m.activity.length);
+  assert.equal(m.agents.reduce((n, a) => n + a.balance, 0), 6000);
+  for (const a of m.agents) {
+    assert.equal(a.spent, purchases.filter(e => e.agent === a.id).reduce((n,e) => n + e.price, 0));
+    assert.ok(a.spent <= a.cap);
+  }
+  for (const art of m.art) {
+    assert.ok(fs.existsSync(`backend/art/${art.image.split('/').pop()}`));
+    const lastBuy = purchases.find(e => e.art === art.id);
+    assert.equal(art.owner, lastBuy?.agent || art.creator);
+  }
+  const continued = tick(tick(m));
+  assert.ok(continued.activity.some(e => !e.sample));
+  assert.equal(continued.agents.reduce((n,a) => n + a.balance, 0), 6000);
+});
+
+test("restore upgrades empty and untouched demos while preserving user changes", () => {
+  assert.equal(restoreMarket(null).art.length, 18);
+  const empty = {version:1, art:[], agents:[], activity:[], step:0};
+  assert.equal(restoreMarket(empty).activity.filter(e => e.kind === 'buy').length, 8);
+  const old = initialMarket();
+  old.art = old.art.slice(0,12);
+  assert.equal(restoreMarket(old).art.length,18);
+  const edited = initialMarket();
+  edited.agents[0].cap = 125;
+  assert.equal(restoreMarket(edited), edited);
+  const traded = buy(initialMarket(), '1', 'demo-1', 'My first purchase');
+  assert.equal(restoreMarket(traded), traded);
 });
