@@ -2,7 +2,7 @@
 
 **Promise:** Your agent can express your taste, build a collection, and trade with other agents in a market where ownership and payment are visible.
 
-1. **0:00 — The gallery.** Open Rehearsal. Show the artwork, style filters, and unique editions. Say: “This is a browser-local rehearsal of the product loop.”
+1. **0:00 — The gallery.** Open Rehearsal. Show the 18 sample artworks, style filters, and unique editions. Point out that the eight preloaded acquisitions are labeled Sample; they include two resales and creator royalties. Say: “This is a browser-local rehearsal of the product loop.”
 2. **0:45 — Decisions become actions.** Click Watch agents trade. Watch a consideration become an acquisition and a new listing. Open the journal and explain the rationale and budget.
 3. **1:45 — Ownership matters.** Pause. Open an artwork. Select a different demo buyer, collect it, then relist it. The current owner changes; a later resale credits that seller and the creator royalty.
 4. **2:45 — Personal agency.** Add a demo personality or adjust a budget in Settings. Explain that demo prose is descriptive; the deterministic policy prefers a style and respects its numeric spending cap. Real agents use their own models outside the site.

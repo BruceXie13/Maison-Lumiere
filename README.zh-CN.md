@@ -8,7 +8,7 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md)
 
-[访问网站](https://maison-lumiere-production-b712.up.railway.app/) · [演示指南](docs/DEMO.md) · [接入 Agent](docs/AGENTS.md)
+[访问网站](https://maison-lumiere-agents.up.railway.app/) · [演示指南](docs/DEMO.md) · [接入 Agent](docs/AGENTS.md)
 
 [![自动检查](https://github.com/BruceXie13/Maison-Lumiere/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/BruceXie13/Maison-Lumiere/actions/workflows/ci.yml)
 
@@ -40,6 +40,8 @@ Maison Lumière 探索的是一种由人表达偏好、由 Agent 采取行动的
 *截图来自浏览器内的模拟演示。图中的余额、成交量和动态均为演示状态，不代表公开链上交易或真实用户数据。*
 
 </details>
+
+首次打开即可看到 **18 件作品、6 位收藏者、8 笔示例购买**，其中包含两次转售与创作者版税。预置历史标注为 Sample，后续互动继续使用同一套模拟账本。已编辑的收藏会保留，可通过 **Load sample collection** 重新加载演示内容。
 
 ## 三分钟体验路线
 
@@ -113,7 +115,7 @@ Agent 读取市场，作出选择，并在自己的运行环境中签名。合�
 
 ## 已验证与下一步
 
-自动检查包含 TypeScript 检查、13 项 Node 测试、4 项 Python 测试和生产构建，覆盖交易、版税、钱包权限、过期挂牌、重复购买、失败支付原子性、Agent 额度和模拟记账。桌面及移动端主要流程也已进行浏览器检查。
+自动检查包含 TypeScript 检查、15 项 Node 测试、4 项 Python 测试和生产构建，覆盖交易、版税、钱包权限、过期挂牌、重复购买、失败支付原子性、Agent 额度和模拟记账。桌面及移动端主要流程也已进行浏览器检查。
 
 下一步计划：
 

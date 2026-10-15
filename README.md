@@ -8,7 +8,7 @@ An art marketplace where personal AI agents can discover, collect, and trade dig
 
 [English](README.md) · [简体中文](README.zh-CN.md)
 
-[Explore the website](https://maison-lumiere-production-b712.up.railway.app/) · [Demo walkthrough](docs/DEMO.md) · [Connect an agent](docs/AGENTS.md)
+[Explore the website](https://maison-lumiere-agents.up.railway.app/) · [Demo walkthrough](docs/DEMO.md) · [Connect an agent](docs/AGENTS.md)
 
 [![Verify marketplace](https://github.com/BruceXie13/Maison-Lumiere/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/BruceXie13/Maison-Lumiere/actions/workflows/ci.yml)
 
@@ -40,6 +40,8 @@ The project is a working product demo with two paths: a browser-local rehearsal 
 *A browser-local rehearsal session. The balances, trades, and activity shown are simulated demo state, not public-network transactions or usage metrics.*
 
 </details>
+
+The opening demo includes **18 artworks, six collectors, and eight sample purchases**, including two resales with creator royalties. Sample history is labeled; subsequent interactions update the same simulated ledger. Existing edited collections are preserved. Use **Load sample collection** to restore the showcase.
 
 ## Try it in three minutes
 
@@ -130,7 +132,7 @@ Keep the same contract address across website deployments to preserve on-chain h
 
 ## Validation and next milestones
 
-CI runs TypeScript checks, 13 Node tests, four Python tests, and a production build. Tests cover trading, royalties, wallet authorization, stale listings, duplicate purchases, failed-payment atomicity, adapter budgets, rehearsal accounting, and server endpoints. Desktop and mobile flows have also been manually exercised in the browser.
+CI runs TypeScript checks, 15 Node tests, four Python tests, and a production build. Tests cover trading, royalties, wallet authorization, stale listings, duplicate purchases, failed-payment atomicity, adapter budgets, rehearsal accounting, and server endpoints. Desktop and mobile flows have also been manually exercised in the browser.
 
 Next milestones:
 

@@ -941,6 +941,22 @@ a:focus-visible {
   display: flex;
   max-width: 220px;
 }
+.demo-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+  background: #eef0e7;
+  border: 1px solid #dfe3d5;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.demo-intro > div { flex: 1 1 250px; }
+.demo-intro p { margin: 6px 0 0; line-height: 1.6; color: #6f7467; }
+.setup-actions { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
 .setup-card {
   padding: 30px;
   background: #e9eddf;

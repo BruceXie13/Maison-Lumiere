@@ -30,6 +30,7 @@ export interface Activity {
   royalty?: number;
   block?: number;
   hash?: string;
+  sample?: boolean;
 }
 export interface Market {
   version: 1;
@@ -59,6 +60,12 @@ export const catalog = [
   ["Echoes of tomorrow", "art_10_echo_chamber.png", "Geometric"],
   ["A slow departure", "art_11_drift.png", "Abstract"],
   ["Order of things", "art_12_grid.png", "Geometric"],
+  ["The weight of stillness", "art_13_monolith.png", "Minimal"],
+  ["Whispers in the network", "art_14_whisper_network.png", "Generative"],
+  ["A portrait of rain", "art_15_portrait_of_rain.png", "Organic"],
+  ["Between frequencies", "art_16_oscillation.png", "Geometric"],
+  ["The crimson thread", "art_17_crimson_thread.png", "Abstract"],
+  ["Beyond the horizon", "art_18_event_horizon.png", "Generative"],
 ];
 export function initialMarket(): Market {
   const names = ["Atelier", "Curio", "Forma", "Sable", "Echo", "Lumen"];
@@ -95,6 +102,58 @@ export function initialMarket(): Market {
     activity: [],
   };
 }
+/** Fictional opening collection, using the same ledger as interactive trades. */
+export function sampleMarket(now = Date.now()): Market {
+  let market = initialMarket();
+  market.activity = market.art.map((art) => ({
+    id: `sample-mint-${art.id}`,
+    kind: "mint",
+    agent: art.creator,
+    art: art.id,
+    text: "Added a unique edition to the opening demo collection.",
+    time: now,
+  }));
+  const purchases: [string, string, number, string][] = [
+    ["1", "demo-1", 60, "The warm, fractured surface anchors my abstract collection."],
+    ["2", "demo-2", 55, "A crystalline composition for my geometric collection."],
+    ["5", "demo-3", 65, "One quiet horizon gives this collection room to breathe."],
+    ["6", "demo-4", 75, "The repeating spiral feels like a system discovering its own rhythm."],
+    ["9", "demo-5", 90, "Earth tones and tactile layers fit my interest in organic forms."],
+    ["3", "demo-0", 60, "A bright counterpoint to my darker abstract works."],
+    ["1", "demo-2", 75, "Collecting this from Curio adds a warmer contrast to my collection."],
+    ["5", "demo-1", 80, "Acquiring this from Sable brings a quieter work into my collection."],
+  ];
+  for (const [id, buyer, price, reason] of purchases) {
+    market = buy(market, id, buyer, reason);
+    market = relist(market, id, buyer, price);
+  }
+  market.activity = market.activity.map((event, i, events) => ({
+    ...event,
+    id: `sample-${events.length - i}`,
+    time: now - (i + 1) * 60_000,
+    sample: true,
+  }));
+  return market;
+}
+
+export function restoreMarket(saved: Market | null): Market {
+  if (
+    saved?.version !== 1 ||
+    !Array.isArray(saved.art) || !saved.art.length ||
+    !Array.isArray(saved.agents) || !saved.agents.length ||
+    !Array.isArray(saved.activity)
+  ) return sampleMarket();
+  // Upgrade only untouched opening catalogs; preserve edited collections and trade history.
+  const baseline = initialMarket();
+  if (
+    saved.step === 0 && saved.activity.length === 0 &&
+    [12, catalog.length].includes(saved.art.length) &&
+    JSON.stringify(saved.agents) === JSON.stringify(baseline.agents) &&
+    JSON.stringify(saved.art) === JSON.stringify(baseline.art.slice(0, saved.art.length))
+  ) return sampleMarket();
+  return saved;
+}
+
 export function buy(
   m: Market,
   id: string,
